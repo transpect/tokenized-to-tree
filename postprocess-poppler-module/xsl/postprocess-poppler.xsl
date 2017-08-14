@@ -4,7 +4,9 @@
   xmlns:ppp="http://transpect.io/postprocess-poppler"
   exclude-result-prefixes="xs ppp"
   version="2.0">
-  
+
+  <xsl:import href="reusable-functions.xsl"/>
+
   <xsl:param name="odd-page-left" as="xs:string?"/>
   <xsl:param name="odd-page-width" as="xs:string?"/>
   <xsl:param name="odd-page-top" as="xs:string?"/>
@@ -200,23 +202,7 @@
       Maybe move this hack to adaptations and create a named template hook here. -->
       <xsl:text>&#x2008;+</xsl:text>
     </xsl:if>
-    <xsl:value-of select="replace(
-                            replace(
-                              replace(
-                                replace(
-                                  ., 
-                                  '([.?*+\{\}\[\]\(\)])', 
-                                  '\\$1'
-                                ),
-                                '-',
-                                '[-&#xad;&#x2010;&#x2011;]'
-                              ),
-                              '([&#x2012;-&#x2015;])',
-                              '&#x2008;?$1&#x2008;?'
-                            ),
-                            '&#x2019;',
-                            '[&#x2019;'']'
-                          )"/>
+    <xsl:value-of select="ppp:regexify(.)"/>
     <xsl:if test=". is ../*[last()]">
       <xsl:choose>
         <xsl:when test="matches(., '\p{Pd}$')">

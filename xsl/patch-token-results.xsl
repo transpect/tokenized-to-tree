@@ -142,8 +142,8 @@
               <xsl:sequence select="$prelim"/>
             </ttt:token>
           </xsl:when>
-            <xsl:when test="$prelim">
-              <ttt:space xmlns="http://www.le-tex.de/namespace/tokenized-to-tree">
+          <xsl:when test="$prelim">
+            <ttt:space xmlns="http://www.le-tex.de/namespace/tokenized-to-tree">
               <xsl:sequence select="$prelim"/>
             </ttt:space>
           </xsl:when>

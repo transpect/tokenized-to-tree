@@ -14,7 +14,7 @@
   <p:input port="source" primary="true">
     <p:documentation>A ttt:paras document, as created by ttt-prepare-hub. The first ttt:para child is a para-like element
     from the original source document, potentially with placeholder elements and completely covered with IDs.
-    The second child is a c:p element, with tokenizer results as c:t elements and interstitial space as c:s elements.
+    The second child is a ttt:tokens element, with tokenizer results as ttt:t elements and interstitial space as ttt:s elements.
     There are some mandatory attributes 
     </p:documentation>
   </p:input>
@@ -31,7 +31,6 @@
   
   <p:import href="http://xmlcalabash.com/extension/steps/library-1.0.xpl"/>
   <p:import href="http://transpect.io/xproc-util/xslt-mode/xpl/xslt-mode.xpl"/>
-  <p:import href="http://transpect.io/xproc-util/store-debug/xpl/store-debug.xpl"/>
   
   <tr:xslt-mode prefix="tokenized-to-tree/patch-results/2" mode="ttt:patch-token-results" msg="yes" name="patch-token-results">
     <p:documentation></p:documentation>
