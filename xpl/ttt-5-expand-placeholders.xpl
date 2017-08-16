@@ -20,6 +20,7 @@
   <p:input port="stylesheet">
     <p:document href="../xsl/re-insert-placeholders.xsl"/>
   </p:input>
+  <p:input port="params" kind="parameter"/>
   
   <p:output port="result" primary="true"/>
 
@@ -37,7 +38,9 @@
     <p:input port="stylesheet">
       <p:pipe port="stylesheet" step="merge-results"/>
     </p:input>
-    <p:input port="parameters"><p:empty/></p:input>
+    <p:input port="parameters">
+      <p:pipe port="params" step="merge-results"/>
+    </p:input>
   </p:xslt>
   
   <tr:store-debug pipeline-step="tokenized-to-tree/merge-results/merge-results">
