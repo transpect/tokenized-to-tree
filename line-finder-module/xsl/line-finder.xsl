@@ -25,7 +25,7 @@
     <xsl:param name="lines" as="element(line)*" tunnel="yes"/>
     <xsl:variable name="matching-lines" as="document-node()">
       <xsl:document>
-        <xsl:sequence  select="$lines[matches(current()/*/@ttt:text, @regex)]"/>
+        <xsl:sequence select="$lines[matches(current()/*/@ttt:text, @regex)]"/>
       </xsl:document>
     </xsl:variable>
     <!-- To do: It there are footnotes on the pages, the poppler output needs to be preprocessed:
@@ -83,11 +83,13 @@
       <xsl:attribute name="xml:id" select="generate-id()"/>
       <xsl:attribute name="p" select="../@number"/>
       <xsl:attribute name="n"
-        select="
-          index-of(for $l in ../line
-          return
-            generate-id($l), generate-id())"/>
+        select="index-of(for $l in ../line
+                         return generate-id($l), 
+                         generate-id())"/>
       <xsl:copy-of select="@*"/>
+      <xsl:if test="*[last()]/self::hyphen">
+        <xsl:attribute name="hyphenated" select="'true'"/>
+      </xsl:if>
     </xsl:copy>
   </xsl:template>
   
@@ -115,12 +117,12 @@
       <xsl:variable name="up-to-here" select="sum(for $p in preceding-sibling::* return string-length($p))"/>
       <xsl:attribute name="start" select="$up-to-here"/>
       <xsl:attribute name="end" select="$up-to-here + string-length(.)"/>
-      <xsl:copy-of select="@p | @n"/>
+      <xsl:copy-of select="@p | @n | @skip | @hyphenated"/>
       <xsl:value-of select="."/>
     </xsl:copy>
   </xsl:template>
   
-  <xsl:function name="ttt:try-coverage" as="element(*)*"><!-- match or non-match -->
+  <xsl:function name="ttt:try-coverage" as="element(*)*"><!-- match, space or non-match -->
     <xsl:param name="uncovered-string" as="xs:string"/>
     <xsl:param name="line-candidates" as="element(line)*"/>
     <xsl:choose>
@@ -146,7 +148,7 @@
         </xsl:if>
         <match>
           <xsl:attribute name="xml:space" select="'preserve'"/>
-          <xsl:copy-of select="$line-candidates[1]/(@p, @n)"/>
+          <xsl:copy-of select="$line-candidates[1]/(@p, @n, @skip, @hyphenated)"/>
           <xsl:value-of select="replace($uncovered-string, concat('^\s*', $line-candidates[1]/@regex, '.*$'), '$1', 's')"/>
         </match>
         <xsl:variable name="space" as="xs:string" 
@@ -165,7 +167,7 @@
         <xsl:analyze-string select="$uncovered-string" regex="{$line-candidates[1]/@regex}">
           <xsl:matching-substring>
             <match>
-              <xsl:copy-of select="$line-candidates[1]/(@p, @n)"/>
+              <xsl:copy-of select="$line-candidates[1]/(@p, @n, @skip, @hyphenated)"/>
               <xsl:attribute name="xml:space" select="'preserve'"/>
               <xsl:value-of select="."/>
             </match>

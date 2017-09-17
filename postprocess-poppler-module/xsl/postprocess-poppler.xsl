@@ -17,6 +17,7 @@
   <xsl:param name="even-page-height" as="xs:string?"/>
   <xsl:param name="space-threshold-upright" select="'2'" as="xs:string"/>
   <xsl:param name="space-threshold-italic" select="'2'" as="xs:string"/>
+  <xsl:param name="fixed-grid-line-height" as="xs:string?"/>
 
   <xsl:variable name="opl" as="xs:integer?" select="ppp:pt-int($odd-page-left, ())"/>
   <xsl:variable name="opw" as="xs:integer?" select="ppp:pt-int($odd-page-width, ())"/>
@@ -28,13 +29,15 @@
   <xsl:variable name="eph" as="xs:integer?" select="ppp:pt-int($even-page-height, $oph)"/>
   <xsl:variable name="space-threshold-upright_int" as="xs:integer" select="xs:integer($space-threshold-upright)"/>
   <xsl:variable name="space-threshold-italic_int" as="xs:integer" select="xs:integer($space-threshold-italic)"/>
+  <xsl:variable name="glh" as="xs:double?" select="for $f in $fixed-grid-line-height[normalize-space()]
+                                                   return number($f)"/>
   
   <xsl:output indent="yes"/>
   
   <xsl:function name="ppp:pt-int" as="xs:integer?">
     <xsl:param name="string-val" as="xs:string?"/>
     <xsl:param name="default" as="xs:integer?"/>
-    <xsl:sequence select="(for $n in $string-val return xs:integer($n), $default)[1]"/>
+    <xsl:sequence select="(for $n in $string-val[normalize-space()] return xs:integer($n), $default)[1]"/>
   </xsl:function>
   
   <xsl:template match="/" mode="#default">
@@ -89,11 +92,46 @@
         group-starting-with="*[for $p in preceding-sibling::text[1] 
                                return number(@top) gt (number($p/@top) + number($p/@height))]">
         <line>
+          <xsl:if test="exists($glh[. gt 0])">
+            <!-- Measuring against the previous line: -->
+            <!--<xsl:variable name="skip" as="xs:double" 
+              select="(
+                        number(@top) 
+                        - 
+                        (
+                          (for $p in preceding-sibling::text[1] return (number($p/@top))),
+                          $opt (: we don’t consider even/odd here, but we should :)
+                        )[1]
+                        + 1 (: heuristical correction :)
+                      ) 
+                      idiv $glh
+                      - 1"/>-->
+            <!-- Measuring against the absolute grid: -->
+            <xsl:variable name="skip" as="xs:double" 
+              select="ppp:gridpos(@top, $glh, $opt) - ppp:gridpos(preceding-sibling::text[1]/@top, $glh, $opt) - 1"/>
+            <xsl:if test="$skip &gt; 0">
+              <xsl:attribute name="skip" select="xs:integer($skip)"/>
+            </xsl:if>
+          </xsl:if>
           <xsl:apply-templates select="current-group()" mode="#current"/>
         </line>
       </xsl:for-each-group>
     </xsl:copy>
   </xsl:template>
+  
+  <xsl:function name="ppp:gridpos" as="xs:integer">
+    <xsl:param name="top" as="xs:integer?"/>
+    <xsl:param name="line-height" as="xs:double"/>
+    <xsl:param name="page-top" as="xs:integer"/>
+    <xsl:choose>
+      <xsl:when test="empty($top)">
+        <xsl:sequence select="0"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:sequence select="($top - $page-top) idiv $line-height + 1"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:function>
   
   <xsl:template match="text[not(i)][for $p in preceding-sibling::text[1] 
                                     return number(@left) gt (number($p/@left) + number($p/@width) + $space-threshold-upright_int)]" 
