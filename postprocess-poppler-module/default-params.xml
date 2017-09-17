@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<c:param-set xmlns:c="http://www.w3.org/ns/xproc-step">
+  <c:param name="odd-page-left" value="218"/>
+  <c:param name="odd-page-width" value="436"/>
+  <c:param name="odd-page-top" value="110"/>
+  <c:param name="odd-page-height" value="858"/>
+  <c:param name="even-page-left" value="239"/>
+  <c:param name="even-page-width"/>
+  <c:param name="even-page-top"/>
+  <c:param name="even-page-height"/>
+  <c:param name="space-threshold-upright" value="2"/>
+  <c:param name="space-threshold-italic" value="2"/>
+  <c:param name="fixed-grid-line-height"/>
+</c:param-set>
