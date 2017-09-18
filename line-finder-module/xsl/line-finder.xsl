@@ -163,6 +163,15 @@
           select="replace($uncovered-string, concat('^\s*', $line-candidates[1]/@regex), '', 's')"/>
         <xsl:sequence select="ttt:try-coverage($non-match, $line-candidates[position() gt 1])"/>        
       </xsl:when>
+      <xsl:when test="matches($uncovered-string, $line-candidates[1]/@regex, 's')
+                      and (
+                        some $r in $line-candidates[position() gt 1]/@regex satisfies
+                        matches($uncovered-string, concat('^\s*', $r), 's')
+                      )">
+        <!-- The first regex matches somewhere in between, and there is another one that matches
+          → discard the first because it might be a short line that matches multiple paragraphs -->
+        <xsl:sequence select="ttt:try-coverage($uncovered-string, $line-candidates[position() gt 1])"/>
+      </xsl:when>
       <xsl:otherwise>
         <xsl:analyze-string select="$uncovered-string" regex="{$line-candidates[1]/@regex}">
           <xsl:matching-substring>
