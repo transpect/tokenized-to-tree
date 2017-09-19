@@ -33,9 +33,20 @@
       they start at 1 on each page. -->
     <xsl:variable name="contiguous-lines" as="element(line-group)*">
       <xsl:for-each-group select="$matching-lines/line" group-adjacent="ttt:probably-adjacent-line(.)">
-        <line-group c="{count(current-group())}" cont="{current-grouping-key()}">
-          <xsl:sequence select="current-group()"/>
-        </line-group>
+        <xsl:choose>
+          <xsl:when test="current-grouping-key() = false()">
+            <xsl:for-each select="current-group()">
+              <line-group c="1" cont="{current-grouping-key()}">
+                <xsl:sequence select="."/>
+              </line-group>
+            </xsl:for-each>
+          </xsl:when>
+          <xsl:otherwise>
+            <line-group c="{count(current-group())}" cont="{current-grouping-key()}">
+              <xsl:sequence select="current-group()"/>
+            </line-group>    
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:for-each-group>
     </xsl:variable>
     <xsl:variable name="single-lines-only" as="xs:boolean" 
@@ -59,23 +70,29 @@
     <xsl:param name="line" as="element(line)"/>
     <xsl:variable name="fs" as="element(line)?" select="$line/following-sibling::line[1]"/>
     <xsl:variable name="ps" as="element(line)?" select="$line/preceding-sibling::line[1]"/>
-    <xsl:choose>
-      <xsl:when test="$ps/@p = $line/@p">
-        <xsl:sequence select="number($ps/@n) = number($line/@n) - 1"/>
-      </xsl:when>
-      <xsl:when test="$fs/@p = $line/@p">
-        <xsl:sequence select="number($fs/@n) = number($line/@n) + 1"/>
-      </xsl:when>
-      <xsl:when test="number($ps/@p) = number($line/@p) - 1">
-        <xsl:sequence select="number($line/@n) = 1"/>
-      </xsl:when>
-      <xsl:when test="number($fs/@p) = number($line/@p) + 1">
-        <xsl:sequence select="number($fs/@n) = 1"/>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:sequence select="false()"/>
-      </xsl:otherwise>
-    </xsl:choose>
+    <xsl:sequence select="(
+                            ($ps/@p = $line/@p)
+                            and
+                            (number($ps/@n) = number($line/@n) - 1)
+                          )
+                          or
+                          (
+                            ($fs/@p = $line/@p)
+                            and
+                            (number($fs/@n) = number($line/@n) + 1)
+                          )
+                          or
+                          (
+                            (number($ps/@p) = number($line/@p) - 1)
+                            and
+                            (number($line/@n) = 1)
+                          )
+                          or
+                          (
+                            (number($fs/@p) = number($line/@p) + 1)
+                            and
+                            (number($fs/@n) = 1)
+                          )"/>
   </xsl:function>
 
   <xsl:template match="line" mode="find-matching-lines">
@@ -138,6 +155,16 @@
           <xsl:attribute name="xml:space" select="'preserve'"/>
           <xsl:value-of select="$uncovered-string"/>
         </non-match>
+      </xsl:when>
+      <xsl:when test="matches($uncovered-string, concat('^\s*', $line-candidates[1]/@regex), 's')
+                      and (
+                        some $r in $line-candidates[position() gt 1]
+                                                   [string-length(@regex) gt string-length($line-candidates[1]/@regex)]/@regex
+                        satisfies matches($uncovered-string, concat('^\s*', $r), 's')
+                      )">
+        <!-- The first regex matches at the beginning, but there is a longer one that matches, too
+          → discard the first -->
+        <xsl:sequence select="ttt:try-coverage($uncovered-string, $line-candidates[position() gt 1])"/>
       </xsl:when>
       <xsl:when test="matches($uncovered-string, concat('^\s*', $line-candidates[1]/@regex), 's')">
         <xsl:if test="matches($uncovered-string, '^\s+', 's')">
