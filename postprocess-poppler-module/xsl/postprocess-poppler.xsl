@@ -7,6 +7,8 @@
 
   <xsl:import href="reusable-functions.xsl"/>
 
+  <xsl:param name="first-page" as="xs:string?"/>
+  <xsl:param name="last-page" as="xs:string?"/>
   <xsl:param name="odd-page-left" as="xs:string?"/>
   <xsl:param name="odd-page-width" as="xs:string?"/>
   <xsl:param name="odd-page-top" as="xs:string?"/>
@@ -19,6 +21,8 @@
   <xsl:param name="space-threshold-italic" select="'2'" as="xs:string"/>
   <xsl:param name="fixed-grid-line-height" as="xs:string?"/>
 
+  <xsl:variable name="fp" as="xs:integer?" select="ppp:pt-int($first-page, ())"/>
+  <xsl:variable name="lp" as="xs:integer?" select="ppp:pt-int($last-page, ())"/>
   <xsl:variable name="opl" as="xs:integer?" select="ppp:pt-int($odd-page-left, ())"/>
   <xsl:variable name="opw" as="xs:integer?" select="ppp:pt-int($odd-page-width, ())"/>
   <xsl:variable name="opt" as="xs:integer?" select="ppp:pt-int($odd-page-top, ())"/>
@@ -60,6 +64,13 @@
   </xsl:template>
   
   <xsl:template match="text[@width = '0']" mode="remove-uninteresting" priority="2"/>
+  
+  <xsl:template mode="remove-uninteresting" priority="2"
+    match="page[exists($fp)][number(@number) &lt; $fp]">
+  </xsl:template>
+  
+  <xsl:template mode="remove-uninteresting" priority="2"
+    match="page[exists($lp)][number(@number) > $lp]"/>
   
   <xsl:template mode="remove-uninteresting" priority="1"
     match="page[number(@number) mod 2 = 1]/text[number(@width) + number(@left) lt $opl]" />
@@ -132,6 +143,15 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:function>
+  
+  <xsl:template match="text[not(i)][starts-with(., '\')]" 
+                mode="spaces" priority="2.5">
+    <xsl:call-template name="ppp:space">
+      <xsl:with-param name="width" select="0"/>
+      <xsl:with-param name="maybe" select="true()"/>
+    </xsl:call-template>
+    <xsl:next-match/>
+  </xsl:template>
   
   <xsl:template match="text[not(i)][for $p in preceding-sibling::text[1] 
                                     return number(@left) gt (number($p/@left) + number($p/@width) + $space-threshold-upright_int)]" 
@@ -225,10 +245,11 @@
   <xsl:template match="line[text]" mode="regex">
     <xsl:copy>
       <xsl:apply-templates select="@*" mode="#current"/>
-      <xsl:attribute name="regex" separator="">
+      <xsl:variable name="proto-regex" as="node()+">
         <xsl:text>(</xsl:text>
         <xsl:apply-templates select="*" mode="#current"/>
-      </xsl:attribute>
+      </xsl:variable>
+      <xsl:attribute name="regex" select="replace(string-join($proto-regex, ''), '\\\.\\\.\\\.', '(\\.\\.\\.|…)')"/>
       <xsl:copy-of select="node()"/>
     </xsl:copy>
   </xsl:template>
@@ -238,7 +259,7 @@
     <!-- hack (U+2008 in source XML is too narrow and won’t be turned into a space).
       Question: does it appear in front of other chars, too? 
       Maybe move this hack to adaptations and create a named template hook here. -->
-      <xsl:text>&#x2008;+</xsl:text>
+      <xsl:text>&#x2008;*</xsl:text>
     </xsl:if>
     <xsl:value-of select="ppp:regexify(.)"/>
     <xsl:if test=". is ../*[last()]">

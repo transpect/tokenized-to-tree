@@ -13,7 +13,7 @@
   <p:input port="stylesheet">
     <p:document href="http://transpect.io/tokenized-to-tree/postprocess-poppler-module/xsl/postprocess-poppler.xsl"/>
   </p:input>
-  <p:input port="param-doc">
+  <p:input port="param-doc" kind="parameter">
     <p:document href="../default-params.xml"/>
   </p:input>
 

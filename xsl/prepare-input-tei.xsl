@@ -12,6 +12,10 @@
   
   <xsl:import href="prepare-input.xsl"/>
   
+  <xsl:variable name="ttt:original-document" as="document-node(element(tei:TEI))?" select="collection()[2]">
+    <!-- only for ttt:discard -->
+  </xsl:variable>
+  
   <xsl:variable name="ttt:content-element-names" as="xs:string+"
     select="('p', 's', 'w', 'hi', 'seg', 'index', 'link', 'ab', 'head', 'app', 'lem', 'subst', 'add')"/>
 

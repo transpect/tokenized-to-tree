@@ -33,6 +33,9 @@
   <xsl:template match="ttt:normalized-space" mode="#default in-patched" priority="5">
     <xsl:value-of select="@original"/>
   </xsl:template>
+  <xsl:template match="ttt:generated" mode="in-patched" priority="5">
+    <xsl:apply-templates select=".//ttt:*" mode="#current"/>
+  </xsl:template>
   <xsl:template match="ttt:space" mode="in-patched">
     <xsl:apply-templates mode="#current"/>
   </xsl:template>
