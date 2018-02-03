@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar 
+  xmlns="http://relaxng.org/ns/structure/1.0"
+  xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
+  xmlns:ttt="http://transpect.io/tokenized-to-tree"
+  datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <start>
+    <ref name="ttt_paras"/>
+  </start>
+  
+  <define name="ttt_paras">
+    <element name="ttt:paras">
+      <optional>
+        <ref name="ttt_start-attribute"/>
+      </optional>
+      <optional>
+        <ref name="ttt_end-attribute"/>
+      </optional>
+      <ref name="any-atts"/>
+      <zeroOrMore>
+        <ref name="ttt_para"/>
+      </zeroOrMore>
+    </element>
+  </define>
+  
+  <define name="ttt_text-attribute">
+    <attribute name="ttt:text"/>
+  </define>
+  <define name="ttt_start-attribute">
+    <attribute name="ttt:start">
+      <data type="integer"/>
+    </attribute>
+  </define>
+  <define name="ttt_end-attribute">
+    <attribute name="ttt:end">
+      <data type="integer"/>
+    </attribute>
+  </define>
+  <define name="start_att">
+    <attribute name="start">
+      <data type="integer"/>
+    </attribute>
+  </define>
+  <define name="end_att">
+    <attribute name="end">
+      <data type="integer"/>
+    </attribute>
+  </define>
+  
+  <define name="any-atts">
+    <zeroOrMore>
+      <attribute>
+        <anyName>
+          <except>
+            <nsName ns="http://transpect.io/tokenized-to-tree"/>
+            <nsName ns="http://www.w3.org/XML/1998/namespace"/>
+          </except>
+        </anyName>
+      </attribute>
+    </zeroOrMore>
+  </define>
+  
+  <define name="ttt_para">
+    <element name="ttt:para">
+      <ref name="para-like"/>
+      <optional>
+        <ref name="tokenization-analysis-result"/>
+      </optional>
+    </element>
+  </define>
+  
+  <define name="para-like">
+    <element>
+      <anyName>
+        <except>
+          <nsName ns="http://transpect.io/tokenized-to-tree"/>
+        </except>
+      </anyName>
+      <ref name="any-atts"/>
+      <ref name="ttt_text-attribute"/>
+      <ref name="ttt_start-attribute"/>
+      <ref name="ttt_end-attribute"/>
+      <ref name="xml-atts_ID-mandatory"/>
+      <ref name="para-like-content"/>
+    </element>
+  </define>
+
+  <define name="xml-atts_ID-mandatory">
+    <attribute name="xml:id"/>
+    <optional>
+      <attribute name="xml:lang"/>
+    </optional>
+    <optional>
+      <attribute name="xml:space"/>
+    </optional>
+  </define>
+
+  <define name="content-element">
+    <element>
+      <choice>
+        <anyName>
+          <except>
+            <nsName ns="http://transpect.io/tokenized-to-tree"/>
+          </except>
+        </anyName>
+        <name>ttt:generated-text</name>
+      </choice>
+      <ref name="any-atts"/>
+      <ref name="ttt_start-attribute"/>
+      <ref name="ttt_end-attribute"/>
+      <ref name="xml-atts_ID-mandatory"/>
+      <ref name="para-like-content"/>
+    </element>
+  </define>
+
+  <define name="placeholder-content-element">
+    <element>
+      <choice>
+        <anyName>
+          <except>
+            <nsName ns="http://transpect.io/tokenized-to-tree"/>
+          </except>
+        </anyName>
+        <name>ttt:comment</name>
+        <name>ttt:ignorable-text</name>
+        <name>ttt:pi</name>
+      </choice>
+      <attribute name="ttt:role">
+        <value>placeholder</value>
+      </attribute>
+      <ref name="any-atts"/>
+      <ref name="ttt_start-attribute"/>
+      <ref name="ttt_end-attribute"/>
+      <ref name="xml-atts_ID-mandatory"/>
+    </element>
+  </define>
+  
+  <define name="generated-text-element">
+    <element name="ttt:generated">
+      <ref name="ttt_start-attribute"/>
+      <ref name="ttt_end-attribute"/>
+      <text/>
+    </element>
+  </define>
+  
+  <define name="normalized-space-element">
+    <element name="ttt:normalized-space">
+      <attribute name="original"/>
+      <ref name="ttt_start-attribute"/>
+      <ref name="ttt_end-attribute"/>
+      <data type="string">
+        <param name="pattern"> </param>
+      </data>
+      <!--<text>
+        <a:documentation>a single U+20 space character</a:documentation>
+      </text>-->
+    </element>
+  </define>
+  
+  <define name="para-like-content">
+    <zeroOrMore>
+      <choice>
+        <ref name="content-element"/>
+        <ref name="placeholder-content-element"/>
+        <ref name="normalized-space-element"/>
+        <ref name="generated-text-element"/>
+        <text/>
+      </choice>
+    </zeroOrMore>
+  </define>
+  
+  <define name="tokenization-analysis-result">
+    <element name="ttt:tokens">
+      <zeroOrMore>
+      <attribute>
+        <anyName>
+          <except>
+            <nsName ns="http://transpect.io/tokenized-to-tree"/>
+            <nsName ns="http://www.w3.org/XML/1998/namespace"/>
+            <name>start</name>
+            <name>end</name>
+          </except>
+        </anyName>
+      </attribute>
+    </zeroOrMore>
+      <zeroOrMore>
+        <choice>
+          <text/>
+          <ref name="ttt_s-element"/>
+          <ref name="ttt_t-element"/>
+        </choice>
+      </zeroOrMore>
+    </element>
+  </define>
+  
+  <define name="token-attributes">
+    <zeroOrMore>
+      <attribute>
+        <anyName>
+          <except>
+            <nsName ns="http://transpect.io/tokenized-to-tree"/>
+            <name>start</name>
+            <name>end</name>
+          </except>
+        </anyName>
+      </attribute>
+    </zeroOrMore>
+  </define>
+  
+  <define name="ttt_s-element">
+    <element name="ttt:s">
+      <ref name="start_att"/>
+      <ref name="end_att"/>
+      <ref name="token-attributes"/>
+      <text/>
+    </element>
+  </define>
+  
+  <define name="ttt_t-element">
+    <element name="ttt:t">
+      <ref name="start_att"/>
+      <ref name="end_att"/>
+      <ref name="token-attributes"/>
+      <text/>
+    </element>
+  </define>
+  
+</grammar>

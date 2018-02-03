@@ -12,14 +12,21 @@
   name="process-paras">
   
   <p:input port="source" primary="true">
-    <p:documentation>A ttt:paras document, as created by ttt-prepare-hub. The first ttt:para child is a para-like element
-    from the original source document, potentially with placeholder elements and completely covered with IDs.
-    The second child is a ttt:tokens element, with tokenizer results as ttt:t elements and interstitial space as ttt:s elements.
-    There are some mandatory attributes 
-    </p:documentation>
+    <p:documentation>A ttt:paras document, as created by ttt:prepare-input. The first ttt:para child
+      is a para-like element from the original source document, potentially with placeholder
+      elements and completely covered with IDs. The second child is a ttt:tokens element, with
+      tokenizer results as ttt:t elements and interstitial space as ttt:s elements (the latter is
+      purely declarative and optional). There are two mandatory attributes, @start and @end, in
+      order to facilitat merging of the original and the tokeizing/analysis results. In the
+      normalized input, these attributes are called @ttt:start and @ttt:end in order to avoid name
+      clashes. For a given processing unit, all start and end attributes refer to the same string,
+      which is the string value of the input, which in turn must be identical to the string value of
+      the tokenization/analysis.</p:documentation>
   </p:input>
   <p:input port="patch-token-stylesheet">
     <p:document href="../xsl/patch-token-results.xsl"/>
+    <p:documentation>This will typically be used unaltered (unimported). There are cases though where collateral
+    actions will be performed while merging the tokens with the normalized input.</p:documentation>
   </p:input>
   <p:output port="result" primary="true"/>
 
@@ -32,8 +39,16 @@
   <p:import href="http://xmlcalabash.com/extension/steps/library-1.0.xpl"/>
   <p:import href="http://transpect.io/xproc-util/xslt-mode/xpl/xslt-mode.xpl"/>
   
+  <p:validate-with-relax-ng name="rng" assert-valid="true">
+    <p:input port="schema">
+      <p:document href="http://transpect.io/tokenized-to-tree/schema/tokenized-to-tree.rng"/>
+    </p:input>
+  </p:validate-with-relax-ng>
+  
   <tr:xslt-mode prefix="tokenized-to-tree/patch-results/2" mode="ttt:patch-token-results" msg="yes" name="patch-token-results">
-    <p:documentation></p:documentation>
+    <p:documentation>Transfers the tokenization/analysis information (each ttt:para’s 2nd child) to the normalized
+    input processing units (each ttt:para’s first step) by creating milestone elements for the start and the end of each 
+    token. These milestone elements also hold the analysis results as attributes.</p:documentation>
     <p:with-option name="debug" select="$debug"/>
     <p:with-option name="debug-dir-uri" select="$debug-dir-uri"/>
     <p:input port="models"><p:empty/></p:input>
