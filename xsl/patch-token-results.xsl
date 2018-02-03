@@ -93,9 +93,16 @@
         </xsl:variable>
         <xsl:variable name="positions" select="for $a in $atts return xs:integer($a - $offset)" as="xs:integer*"/>
         <xsl:value-of select="substring($context, 1, ($positions[1], string-length($context))[1])"/>
-        <xsl:for-each select="$atts">
-          <xsl:apply-templates select="." mode="#current"/>
-          <xsl:value-of select="for $pos in position() return substring($context, $positions[$pos] + 1, ($positions[$pos + 1], string-length($context))[1] - $positions[$pos])"/>  
+        <xsl:for-each select="$atts"><!-- @start or @end position attributes that are within the current text node’s 
+                                          positional range --> 
+          <xsl:apply-templates select="." mode="#current"/><!-- the folliwing template transform them  to ttt:start or 
+                                                                ttt:end milestone elements --> 
+          <xsl:value-of select="for $pos in position() (: the position of the @start/@end attribute that has just created a milestone :)
+                                return substring(
+                                  $context, 
+                                  $positions[$pos] + 1, 
+                                  ( $positions[$pos + 1], string-length($context) )[1] - $positions[$pos]
+                                )"/>  
         </xsl:for-each>
       </xsl:when>
       <xsl:otherwise>
