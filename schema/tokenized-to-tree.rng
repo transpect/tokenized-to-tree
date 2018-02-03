@@ -3,6 +3,7 @@
   xmlns="http://relaxng.org/ns/structure/1.0"
   xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
   xmlns:ttt="http://transpect.io/tokenized-to-tree"
+  xmlns:sch="http://purl.oclc.org/dsdl/schematron"
   datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
   <start>
     <ref name="ttt_paras"/>
@@ -224,5 +225,14 @@
       <text/>
     </element>
   </define>
+  
+  <sch:ns uri="http://transpect.io/tokenized-to-tree" prefix="ttt"/>
+  
+  <sch:pattern id="same-length">
+    <sch:rule context="ttt:para[ttt:tokens]">
+      <sch:assert test="string-length(*[1]/@ttt:text) &gt;= (*[2]/self::ttt:tokens/*/@end)[last()]">There may be no
+      token at a string position that is greater than the string length of the normalized input.</sch:assert>
+    </sch:rule>
+  </sch:pattern>
   
 </grammar>
