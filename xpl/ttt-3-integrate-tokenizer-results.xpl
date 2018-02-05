@@ -28,6 +28,10 @@
     <p:documentation>This will typically be used unaltered (unimported). There are cases though where collateral
     actions will be performed while merging the tokens with the normalized input.</p:documentation>
   </p:input>
+  <p:input port="rng-schema">
+    <p:document href="http://transpect.io/tokenized-to-tree/schema/tokenized-to-tree.rng"/>
+  </p:input>
+  
   <p:output port="result" primary="true"/>
 
   <p:option name="debug" required="false" select="'no'"/>
@@ -41,9 +45,35 @@
   
   <p:validate-with-relax-ng name="rng" assert-valid="true">
     <p:input port="schema">
-      <p:document href="http://transpect.io/tokenized-to-tree/schema/tokenized-to-tree.rng"/>
+      <p:pipe port="rng-schema" step="process-paras"/>
     </p:input>
   </p:validate-with-relax-ng>
+
+  <p:sink name="sink1"/>
+  
+  <p:xslt name="extract-sch">
+    <p:input port="source">
+      <p:pipe port="rng-schema" step="process-paras"/>
+    </p:input>
+    <p:input port="parameters"><p:empty/></p:input>
+    <p:input port="stylesheet">
+      <p:document href="http://transpect.io/tokenized-to-tree/schema/sch-from-rng.xsl"/>
+    </p:input>
+  </p:xslt>
+  
+  <p:sink name="sink2"/>
+
+  <p:validate-with-schematron assert-valid="true" name="sch">
+    <p:input port="source">
+      <p:pipe port="result" step="rng"/>
+    </p:input>
+    <p:input port="schema">
+      <p:pipe port="result" step="extract-sch"/>
+    </p:input>
+    <p:input port="parameters">
+      <p:empty/>
+    </p:input>
+  </p:validate-with-schematron>
   
   <tr:xslt-mode prefix="tokenized-to-tree/patch-results/2" mode="ttt:patch-token-results" msg="yes" name="patch-token-results">
     <p:documentation>Transfers the tokenization/analysis information (each ttt:para’s 2nd child) to the normalized

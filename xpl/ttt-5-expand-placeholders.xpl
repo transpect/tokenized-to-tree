@@ -8,12 +8,12 @@
   name="merge-results">
   
   <p:input port="source" primary="false">
-    <p:documentation>A Hub 1.1 document where every para-like element bears an ID. This ID must be matched by the ttt:para child
+    <p:documentation>An XML document where every para-like element bears an ID. This ID must be matched by the ttt:para child
       elements in the document on the patched-paras port. Also, the elements that are marked with ttt:role="placeholder" in the
       other document must have a matching ID here. Otherwise they cannot be merged.</p:documentation>
   </p:input>
   <p:input port="patched-paras" primary="true">
-    <p:documentation>A ttt:paras document as created by ttt:process-paras (text analysis results patched into the individual Hub
+    <p:documentation>A ttt:paras document as created by ttt:process-paras (text analysis results patched into the individual 
       para-like elements). Below ttt:paras are the payload document elements. They must all be equipped with xml:ids so that we
       are able to merge them back into the source document.</p:documentation>
   </p:input>
