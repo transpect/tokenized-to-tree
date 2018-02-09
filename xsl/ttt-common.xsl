@@ -13,7 +13,8 @@
   <!-- This default for DocBook should be overwritten for other XML vocabularies. 
     Maybe all DocBook defaults should move to prepare-input-docbook.xsl -->
   <xsl:variable name="ttt:content-element-names" as="xs:string+"
-    select="('para', 'phrase', 'emphasis', 'xref', 'indexterm', 'link', 'simpara', 'tab', 'br', 'title', 'subscript', 'superscript')"/>
+    select="('para', 'phrase', 'emphasis', 'xref', 'indexterm', 'link', 'simpara', 'tab', 'br', 'title', 
+    'subscript', 'superscript', 'ttt:normalized-space')"/>
   
   <xsl:variable name="ttt:placeholder-element-names" as="xs:string+"
     select="('annotation', 'tabs', 'footnote')"/>
