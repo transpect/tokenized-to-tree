@@ -48,10 +48,4 @@
     <p:with-option name="base-uri" select="$debug-dir-uri" />
   </tr:store-debug>
   
-  <!--<tr:prepend-xml-model name="prepend-model">
-    <p:input port="models"><p:empty/></p:input>
-    <p:with-option name="hub-version" select="'1.1'"/>
-  </tr:prepend-xml-model>-->
-  
-  
 </p:declare-step>
