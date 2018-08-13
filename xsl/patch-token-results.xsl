@@ -171,8 +171,10 @@
     </xsl:if>
   </xsl:template>
 
-  <xsl:template match="ttt:start | ttt:end | @ttt:text | @ttt:start | @ttt:end | @token-id" 
-    mode="ttt:pull-up-delims_restrict ttt:pull-up-delims"/>
+  <xsl:template match="ttt:start | ttt:end | @ttt:text | @token-id" 
+    mode="ttt:pull-up-delims_restrict ttt:pull-up-delims">
+    <!-- @ttt:start | @ttt:end will be removed in re-insert-placeholders.xsl -->
+  </xsl:template>
 
   <xsl:template match="ttt:para" mode="ttt:pull-up-delims">
     <xsl:apply-templates mode="#current"/>
