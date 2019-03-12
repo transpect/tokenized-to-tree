@@ -40,7 +40,7 @@
       <xsl:message select="'PREC: ',$preceding/following::text()[1][string-length(.) + $preceding[last()]/@ttt:end &gt;= $pos]"/>
     </xsl:if>-->
     <xsl:sequence select="(($parent//text())[1], 
-                           ($preceding/following::text()[1][string-length(.) + $preceding[last()]/@ttt:end &gt;= $pos])
+                           ($preceding/following::text()[1][exists(ancestor::* intersect $para)][string-length(.) + $preceding[last()]/@ttt:end &gt;= $pos])
                           )[last()]"/>
   </xsl:function>
 
@@ -81,6 +81,7 @@
       <xsl:when test="some $s in ($start-nodes, $end-nodes) satisfies (. is $s)
                       and not(ancestor::*[@ttt:action])">
         <xsl:variable name="offset" select="xs:integer((../@ttt:start | preceding-sibling::*[1]/@ttt:end)[last()])" as="xs:integer"/>
+        <!-- current() is a ttt:para/*[1] text node. The positional comparisons run against ttt:para/*[2]/ttt:t -->
         <xsl:variable name="token-start-atts" as="attribute(start)*"
           select="ancestor::ttt:para/ttt:tokens//ttt:t[@start &gt;= $offset and @start &lt;= $offset + string-length(current())]/@start"/>
         <xsl:variable name="token-end-atts" as="attribute(end)*"
