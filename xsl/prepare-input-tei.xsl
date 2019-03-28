@@ -17,7 +17,7 @@
   </xsl:variable>
   
   <xsl:variable name="ttt:content-element-names" as="xs:string+"
-    select="('p', 's', 'w', 'hi', 'seg', 'index', 'link', 'ab', 'head', 'app', 'lem', 'subst', 'add')"/>
+    select="('p', 's', 'w', 'hi', 'seg', 'index', 'link', 'ab', 'head', 'app', 'lem', 'subst', 'add', 'rs')"/>
 
   <xsl:variable name="ttt:whitespace-ignoring-element-names" as="xs:string*"
     select="('app', 'subst')"/>

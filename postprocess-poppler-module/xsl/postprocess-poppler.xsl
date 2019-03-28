@@ -249,7 +249,23 @@
         <xsl:text>(</xsl:text>
         <xsl:apply-templates select="*" mode="#current"/>
       </xsl:variable>
-      <xsl:attribute name="regex" select="replace(string-join($proto-regex, ''), '\\\.\\\.\\\.', '(\\.\\.\\.|…)')"/>
+      <xsl:attribute name="regex" select="replace(
+                                            replace(
+                                              replace(
+                                                replace(
+                                                  string-join($proto-regex, ''), 
+                                                  '\\\.\\\.\\\.', 
+                                                  '(\\.\\.\\.|…)'
+                                                ),
+                                                '¯a',
+                                                'ā'
+                                              ),
+                                              '([duz]\\\.)([aBhRT]\\\.)',
+                                              '$1[\\s\\p{Zs}​]*$2'
+                                            ),
+                                            '([Iiz]\\\.|AK)([dB]\\\.|8)',
+                                            '$1[\\s\\p{Zs}​]*$2'
+                                          )"/>
       <xsl:copy-of select="node()"/>
     </xsl:copy>
   </xsl:template>
@@ -287,7 +303,7 @@
   </xsl:template>
   
   <xsl:template match="hyphen" mode="regex">
-    <xsl:text>-?)</xsl:text>
+    <xsl:text>[-&#x2010;]?)</xsl:text>
   </xsl:template>
 
 
