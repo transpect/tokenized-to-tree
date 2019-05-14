@@ -17,33 +17,39 @@
   <xsl:param name="even-page-width" as="xs:string?"/>
   <xsl:param name="even-page-top" as="xs:string?"/>
   <xsl:param name="even-page-height" as="xs:string?"/>
-  <xsl:param name="space-threshold-upright" select="'2'" as="xs:string"/>
-  <xsl:param name="space-threshold-italic" select="'2'" as="xs:string"/>
+  <xsl:param name="space-threshold-upright" as="xs:string"/>
+  <xsl:param name="space-threshold-italic" as="xs:string"/>
   <xsl:param name="fixed-grid-line-height" as="xs:string?"/>
 
-  <xsl:variable name="fp" as="xs:integer?" select="ppp:pt-int($first-page, ())"/>
-  <xsl:variable name="lp" as="xs:integer?" select="ppp:pt-int($last-page, ())"/>
-  <xsl:variable name="opl" as="xs:integer?" select="ppp:pt-int($odd-page-left, ())"/>
-  <xsl:variable name="opw" as="xs:integer?" select="ppp:pt-int($odd-page-width, ())"/>
-  <xsl:variable name="opt" as="xs:integer?" select="ppp:pt-int($odd-page-top, ())"/>
-  <xsl:variable name="oph" as="xs:integer?" select="ppp:pt-int($odd-page-height, ())"/>
-  <xsl:variable name="epl" as="xs:integer?" select="ppp:pt-int($even-page-left, $opl)"/>
-  <xsl:variable name="epw" as="xs:integer?" select="ppp:pt-int($even-page-width, $opw)"/>
-  <xsl:variable name="ept" as="xs:integer?" select="ppp:pt-int($even-page-top, $opt)"/>
-  <xsl:variable name="eph" as="xs:integer?" select="ppp:pt-int($even-page-height, $oph)"/>
-  <xsl:variable name="space-threshold-upright_int" as="xs:integer" select="xs:integer($space-threshold-upright)"/>
-  <xsl:variable name="space-threshold-italic_int" as="xs:integer" select="xs:integer($space-threshold-italic)"/>
+  <xsl:variable name="fp" as="xs:double?" select="ppp:pt-double($first-page, ())"/>
+  <xsl:variable name="lp" as="xs:double?" select="ppp:pt-double($last-page, ())"/>
+  <xsl:variable name="opl" as="xs:double?" select="ppp:pt-double($odd-page-left, ())"/>
+  <xsl:variable name="opw" as="xs:double?" select="ppp:pt-double($odd-page-width, ())"/>
+  <xsl:variable name="opt" as="xs:double?" select="ppp:pt-double($odd-page-top, ())"/>
+  <xsl:variable name="oph" as="xs:double?" select="ppp:pt-double($odd-page-height, ())"/>
+  <xsl:variable name="epl" as="xs:double?" select="ppp:pt-double($even-page-left, $opl)"/>
+  <xsl:variable name="epw" as="xs:double?" select="ppp:pt-double($even-page-width, $opw)"/>
+  <xsl:variable name="ept" as="xs:double?" select="ppp:pt-double($even-page-top, $opt)"/>
+  <xsl:variable name="eph" as="xs:double?" select="ppp:pt-double($even-page-height, $oph)"/>
+  <xsl:variable name="space-threshold-upright_double" as="xs:double" select="xs:double($space-threshold-upright)"/>
+  <xsl:variable name="space-threshold-italic_double" as="xs:double" select="xs:double($space-threshold-italic)"/>
   <xsl:variable name="glh" as="xs:double?" select="for $f in $fixed-grid-line-height[normalize-space()]
                                                    return number($f)"/>
   
   <xsl:output indent="yes"/>
-  
+
   <xsl:function name="ppp:pt-int" as="xs:integer?">
     <xsl:param name="string-val" as="xs:string?"/>
     <xsl:param name="default" as="xs:integer?"/>
     <xsl:sequence select="(for $n in $string-val[normalize-space()] return xs:integer($n), $default)[1]"/>
   </xsl:function>
-  
+
+  <xsl:function name="ppp:pt-double" as="xs:double?">
+    <xsl:param name="string-val" as="xs:string?"/>
+    <xsl:param name="default" as="xs:double?"/>
+    <xsl:sequence select="(for $n in $string-val[normalize-space()] return xs:double($n), $default)[1]"/>
+  </xsl:function>
+
   <xsl:template match="/" mode="#default">
     <xsl:variable name="remove-uninteresting" as="document-node(element(pdf2xml))">
       <xsl:document><xsl:apply-templates select="/" mode="remove-uninteresting"/></xsl:document>
@@ -119,7 +125,7 @@
                       - 1"/>-->
             <!-- Measuring against the absolute grid: -->
             <xsl:variable name="skip" as="xs:double" 
-              select="ppp:gridpos(@top, $glh, $opt) - ppp:gridpos(preceding-sibling::text[1]/@top, $glh, $opt) - 1"/>
+              select="ppp:gridpos-double(@top, $glh, $opt) - ppp:gridpos-double(preceding-sibling::text[1]/@top, $glh, $opt) - 1"/>
             <xsl:if test="$skip &gt; 0">
               <xsl:attribute name="skip" select="xs:integer($skip)"/>
             </xsl:if>
@@ -129,8 +135,8 @@
       </xsl:for-each-group>
     </xsl:copy>
   </xsl:template>
-  
-  <xsl:function name="ppp:gridpos" as="xs:integer">
+
+  <xsl:function name="ppp:gridpos-int" as="xs:integer">
     <xsl:param name="top" as="xs:integer?"/>
     <xsl:param name="line-height" as="xs:double"/>
     <xsl:param name="page-top" as="xs:integer"/>
@@ -143,7 +149,21 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:function>
-  
+
+  <xsl:function name="ppp:gridpos-double" as="xs:double">
+    <xsl:param name="top" as="xs:double?"/>
+    <xsl:param name="line-height" as="xs:double"/>
+    <xsl:param name="page-top" as="xs:double"/>
+    <xsl:choose>
+      <xsl:when test="empty($top)">
+        <xsl:sequence select="0"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:sequence select="floor(($top - $page-top) div $line-height + 1)"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:function>
+
   <xsl:template match="text[not(i)][starts-with(., '\')]" 
                 mode="spaces" priority="2.5">
     <xsl:call-template name="ppp:space">
@@ -152,9 +172,17 @@
     </xsl:call-template>
     <xsl:next-match/>
   </xsl:template>
-  
+
+  <!--<xsl:template match="text[not(i)][. = ' ']" mode="spaces" priority="5">
+    <xsl:copy>
+<!-\-      <xsl:variable name="p" select="preceding-sibling::text[1]" as="element(text)"/>-\->
+<!-\-      <xsl:value-of select="'[', string(number(@left) - (number($p/@left) + number($p/@width))), ']'"/>-\->
+      <xsl:value-of select="'TEST'"/>
+    </xsl:copy>
+  </xsl:template>-->
+
   <xsl:template match="text[not(i)][for $p in preceding-sibling::text[1] 
-                                    return number(@left) gt (number($p/@left) + number($p/@width) + $space-threshold-upright_int)]" 
+                                    return number(@left) gt (number($p/@left) + number($p/@width) + $space-threshold-upright_double)]" 
                 mode="spaces" priority="2">
     <xsl:variable name="p" select="preceding-sibling::text[1]" as="element(text)"/>
     <xsl:call-template name="ppp:space">
@@ -164,7 +192,7 @@
   </xsl:template>
   
   <xsl:template match="text[not(i)][for $p in preceding-sibling::text[1] 
-                                    return number(@left) - (number($p/@left) + number($p/@width)) = $space-threshold-upright_int]" 
+                                    return number(@left) - (number($p/@left) + number($p/@width)) = $space-threshold-upright_double]" 
                 mode="spaces" priority="2">
     <xsl:variable name="p" select="preceding-sibling::text[1]" as="element(text)"/>
     <xsl:call-template name="ppp:space">
@@ -175,7 +203,7 @@
   </xsl:template>
   
   <xsl:template match="text[i][for $p in preceding-sibling::text[1] 
-                               return number(@left) gt (number($p/@left) + number($p/@width) + $space-threshold-italic_int)]" 
+                               return number(@left) gt (number($p/@left) + number($p/@width) + $space-threshold-italic_double)]" 
                 mode="spaces" priority="2">
     <xsl:variable name="p" select="preceding-sibling::text[1]" as="element(text)"/>
     <xsl:call-template name="ppp:space">
@@ -185,7 +213,7 @@
   </xsl:template>
   
   <xsl:template match="text[i][for $p in preceding-sibling::text[1] 
-                               return number(@left) - (number($p/@left) + number($p/@width) ) = $space-threshold-italic_int]" 
+                               return number(@left) - (number($p/@left) + number($p/@width) ) = $space-threshold-italic_double]" 
                 mode="spaces" priority="2">
     <xsl:variable name="p" select="preceding-sibling::text[1]" as="element(text)"/>
     <xsl:call-template name="ppp:space">
