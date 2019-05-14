@@ -69,7 +69,7 @@
     </xsl:copy>
   </xsl:template>
   
-  <xsl:template match="text[@width = '0']" mode="remove-uninteresting" priority="2"/>
+  <xsl:template match="text[@width &lt; 0.1]" mode="remove-uninteresting" priority="2"/>
   
   <xsl:template mode="remove-uninteresting" priority="2"
     match="page[exists($fp)][number(@number) &lt; $fp]">
