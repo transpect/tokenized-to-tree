@@ -17,7 +17,7 @@
   </xsl:variable>
   
   <xsl:variable name="ttt:content-element-names" as="xs:string+"
-    select="('p', 's', 'w', 'hi', 'seg', 'index', 'link', 'ab', 'head', 'app', 'lem', 'subst', 'add', 'rs')"/>
+    select="('p', 's', 'w', 'hi', 'seg', 'index', 'link', 'ab', 'head', 'app', 'lem', 'subst', 'add', 'rs', 'wrapper')"/>
 
   <xsl:variable name="ttt:whitespace-ignoring-element-names" as="xs:string*"
     select="('app', 'subst')"/>
@@ -32,7 +32,14 @@
     
   <xsl:function name="ttt:is-para-like" as="xs:boolean">
     <xsl:param name="element" as="element(*)"/>
-    <xsl:sequence select="name($element) = ('p', 'head')"/>
+    <xsl:choose>
+      <xsl:when test="$element/parent::tei:wrapper">
+        <xsl:sequence select="false()"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:sequence select="name($element) = ('p', 'head', 'wrapper')"/>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:function>
   
 </xsl:stylesheet>

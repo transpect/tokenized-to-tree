@@ -9,7 +9,9 @@
       <xsl:apply-templates select="@*, node()" mode="#current"/>
     </xsl:copy>
   </xsl:template>
-  
+
+  <xsl:variable name="ttt:line-finder-regex-flags" as="xs:string" select="'si'"/>
+
   <!-- Mode: find-matching-lines -->
   
   <xsl:template match="/*" mode="find-matching-lines">
@@ -25,7 +27,7 @@
     <xsl:param name="lines" as="element(line)*" tunnel="yes"/>
     <xsl:variable name="matching-lines" as="document-node()">
       <xsl:document>
-        <xsl:sequence select="$lines[matches(current()/*/@ttt:text, @regex)]"/>
+        <xsl:sequence select="$lines[matches(current()/*/@ttt:text, @regex, $ttt:line-finder-regex-flags)]"/>
       </xsl:document>
     </xsl:variable>
     <!-- To do: It there are footnotes on the pages, the poppler output needs to be preprocessed:
@@ -144,7 +146,7 @@
     <xsl:param name="line-candidates" as="element(line)*"/>
     <xsl:choose>
       <xsl:when test="string-length($uncovered-string) = 0"/>
-      <xsl:when test="matches($uncovered-string, '^[\s\p{Zs}]+$', 's')">
+      <xsl:when test="matches($uncovered-string, '^[\s\p{Zs}]+$', $ttt:line-finder-regex-flags)">
         <space>
           <xsl:attribute name="xml:space" select="'preserve'"/>
           <xsl:value-of select="$uncovered-string"/>
@@ -156,30 +158,30 @@
           <xsl:value-of select="$uncovered-string"/>
         </non-match>
       </xsl:when>
-      <xsl:when test="matches($uncovered-string, concat('^\s*', $line-candidates[1]/@regex), 's')
+      <xsl:when test="matches($uncovered-string, concat('^\s*', $line-candidates[1]/@regex), $ttt:line-finder-regex-flags)
                       and (
                         some $r in $line-candidates[position() gt 1]
                                                    [string-length(@regex) gt string-length($line-candidates[1]/@regex)]/@regex
-                        satisfies matches($uncovered-string, concat('^\s*', $r), 's')
+                        satisfies matches($uncovered-string, concat('^\s*', $r), $ttt:line-finder-regex-flags)
                       )">
         <!-- The first regex matches at the beginning, but there is a longer one that matches, too
           → discard the first -->
         <xsl:sequence select="ttt:try-coverage($uncovered-string, $line-candidates[position() gt 1])"/>
       </xsl:when>
-      <xsl:when test="matches($uncovered-string, concat('^\s*', $line-candidates[1]/@regex), 's')">
-        <xsl:if test="matches($uncovered-string, '^\s+', 's')">
+      <xsl:when test="matches($uncovered-string, concat('^\s*', $line-candidates[1]/@regex), $ttt:line-finder-regex-flags)">
+        <xsl:if test="matches($uncovered-string, '^\s+', $ttt:line-finder-regex-flags)">
           <space>
             <xsl:attribute name="xml:space" select="'preserve'"/>
-            <xsl:value-of select="replace($uncovered-string, '^(\s+).*$', '$1', 's')"/>
+            <xsl:value-of select="replace($uncovered-string, '^(\s+).*$', '$1', $ttt:line-finder-regex-flags)"/>
           </space>
         </xsl:if>
         <match>
           <xsl:attribute name="xml:space" select="'preserve'"/>
           <xsl:copy-of select="$line-candidates[1]/(@p, @n, @skip, @hyphenated)"/>
-          <xsl:value-of select="replace($uncovered-string, concat('^\s*', $line-candidates[1]/@regex, '.*$'), '$1', 's')"/>
+          <xsl:value-of select="replace($uncovered-string, concat('^\s*', $line-candidates[1]/@regex, '.*$'), '$1', $ttt:line-finder-regex-flags)"/>
         </match>
         <xsl:variable name="space" as="xs:string" 
-          select="replace($uncovered-string, concat('^\s*', $line-candidates[1]/@regex, '.*$'), '$2', 's')"/>
+          select="replace($uncovered-string, concat('^\s*', $line-candidates[1]/@regex, '.*$'), '$2', $ttt:line-finder-regex-flags)"/>
         <xsl:if test="string-length($space) gt 0">
           <space>
             <xsl:attribute name="xml:space" select="'preserve'"/>
@@ -187,20 +189,20 @@
           </space>
         </xsl:if>
         <xsl:variable name="non-match" as="xs:string"
-          select="replace($uncovered-string, concat('^\s*', $line-candidates[1]/@regex), '', 's')"/>
+          select="replace($uncovered-string, concat('^\s*', $line-candidates[1]/@regex), '', $ttt:line-finder-regex-flags)"/>
         <xsl:sequence select="ttt:try-coverage($non-match, $line-candidates[position() gt 1])"/>        
       </xsl:when>
-      <xsl:when test="matches($uncovered-string, $line-candidates[1]/@regex, 's')
+      <xsl:when test="matches($uncovered-string, $line-candidates[1]/@regex, $ttt:line-finder-regex-flags)
                       and (
                         some $r in $line-candidates[position() gt 1]/@regex satisfies
-                        matches($uncovered-string, concat('^\s*', $r), 's')
+                        matches($uncovered-string, concat('^\s*', $r), $ttt:line-finder-regex-flags)
                       )">
         <!-- The first regex matches somewhere in between, and there is another one that matches
           → discard the first because it might be a short line that matches multiple paragraphs -->
         <xsl:sequence select="ttt:try-coverage($uncovered-string, $line-candidates[position() gt 1])"/>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:analyze-string select="$uncovered-string" regex="{$line-candidates[1]/@regex}">
+        <xsl:analyze-string select="$uncovered-string" regex="{$line-candidates[1]/@regex}" flags="{$ttt:line-finder-regex-flags}">
           <xsl:matching-substring>
             <match>
               <xsl:copy-of select="$line-candidates[1]/(@p, @n, @skip, @hyphenated)"/>
