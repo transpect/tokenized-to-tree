@@ -42,4 +42,36 @@
     </xsl:choose>
   </xsl:function>
   
+    <xsl:template match="app/text()[not(normalize-space())]" mode="ttt:add-ids">
+    <ttt:ignorable-text>
+      <xsl:attribute name="xml:id" select="concat('NOID_', generate-id())"/>
+      <xsl:copy/>
+    </ttt:ignorable-text>
+  </xsl:template>
+  
+  <xsl:variable name="ttt:zero-width-joiner-or-soft-hyphen-regex" as="xs:string" select="'[&#xad;&#x200c;]+'"/>
+  
+  <xsl:template match="*[ttt:is-para-like(.)]//text()[matches(., $ttt:zero-width-joiner-or-soft-hyphen-regex)]" mode="ttt:add-ids">
+    <xsl:analyze-string select="." regex="{$ttt:zero-width-joiner-or-soft-hyphen-regex}">
+      <xsl:matching-substring>
+        <xsl:variable name="prelim" as="element(ttt:ignorable-text)">
+          <ttt:ignorable-text>
+            <xsl:value-of select="."/>
+          </ttt:ignorable-text>  
+        </xsl:variable>
+        <xsl:for-each select="$prelim">
+          <xsl:copy>
+            <xsl:attribute name="xml:id" select="concat('NOID_', generate-id())"/>
+            <xsl:copy-of select="node()"/>
+          </xsl:copy>
+        </xsl:for-each>
+      </xsl:matching-substring>
+      <xsl:non-matching-substring>
+        <xsl:value-of select="."/>
+      </xsl:non-matching-substring>
+    </xsl:analyze-string>
+  </xsl:template>
+  
+
+  
 </xsl:stylesheet>
