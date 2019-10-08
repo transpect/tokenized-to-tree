@@ -20,7 +20,9 @@
   <xsl:param name="space-threshold-upright" as="xs:string"/>
   <xsl:param name="space-threshold-italic" as="xs:string"/>
   <xsl:param name="fixed-grid-line-height" as="xs:string?"/>
+  <xsl:param name="exclude-fonts" as="xs:string?"/>
 
+  <xsl:variable name="ef" as="xs:integer*" select="for $t in tokenize($exclude-fonts, '\s+') return xs:integer($t)"/>
   <xsl:variable name="fp" as="xs:double?" select="ppp:pt-double($first-page, ())"/>
   <xsl:variable name="lp" as="xs:double?" select="ppp:pt-double($last-page, ())"/>
   <xsl:variable name="opl" as="xs:double?" select="ppp:pt-double($odd-page-left, ())"/>
@@ -71,6 +73,8 @@
   
   <xsl:template match="text[@width &lt; '0.01']" mode="remove-uninteresting" priority="2"/>
 
+  <xsl:template match="text[@font = $ef]" mode="remove-uninteresting" priority="2.1"/>
+  
   <xsl:template mode="remove-uninteresting" priority="2"
     match="page[exists($fp)][number(@number) &lt; $fp]">
   </xsl:template>
