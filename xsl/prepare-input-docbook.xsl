@@ -11,7 +11,7 @@
   
   <xsl:import href="prepare-input.xsl"/>
   
-  <xsl:template match="*[name() = $ttt:placeholder-element-names][not(@xml:id)]" mode="ttt:add-ids">
+  <xsl:template match="*[ttt:is-placeholder-element(.)][not(@xml:id)]" mode="ttt:add-ids">
     <xsl:copy>
       <xsl:copy-of select="@*"/>
       <xsl:attribute name="xml:id" select="concat('NOID_', generate-id())"/>
@@ -39,7 +39,7 @@
     The link here and its $ttt:ignore-href-regex-x is just an example. 
     The predicate should invoke a default selection function that may be overridden. -->
   <xsl:template match="  dbk:link[matches(@xlink:href, $ttt:ignore-href-regex-x, 'x')]
-                       | *[parent::*][not(name() = $ttt:content-element-names)]
+                       | *[parent::*][not(ttt:is-content-element(.))]
                        | *[@role = 'hub:foreign']
                        (:
                        | dbk:superscript[matches(., '^\s*\d+\s*$')]

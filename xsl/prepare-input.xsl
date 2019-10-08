@@ -95,12 +95,23 @@
                 )[last()]"/>
   </xsl:template>
 
-  <xsl:template match="*[name() = $ttt:placeholder-element-names]" mode="ttt:add-ids" priority="2">
+  <xsl:template match="*[ttt:is-placeholder-element(.)]" mode="ttt:add-ids" priority="2">
     <xsl:copy>
       <xsl:attribute name="xml:id" select="concat('NOID_', generate-id())"/>
       <xsl:apply-templates select="@*, node()" mode="#current"/>
     </xsl:copy>
   </xsl:template>
+  
+  <!-- overwrite it for more context dependency -->
+  <xsl:function name="ttt:is-placeholder-element" as="xs:boolean">
+    <xsl:param name="elt" as="element(*)"/>
+    <xsl:sequence select="local-name($elt) = $ttt:placeholder-element-names"/>
+  </xsl:function>
+  
+  <xsl:function name="ttt:is-content-element" as="xs:boolean">
+    <xsl:param name="elt" as="element(*)"/>
+    <xsl:sequence select="local-name($elt) = $ttt:content-element-names"/>
+  </xsl:function>
   
   <xsl:template match="processing-instruction()[ancestor::*]" mode="ttt:add-ids" priority="1">
     <ttt:pi>
@@ -123,12 +134,6 @@
       <xsl:attribute name="xml:id" select="concat('NOID_', generate-id())"/>
       <xsl:apply-templates mode="#current"/>
     </xsl:copy>
-  </xsl:template>
-  
-  <xsl:template match="dbk:footnote/dbk:para[1]/dbk:phrase[@role = 'hub:identifier']" mode="ttt:add-ids" priority="3"/>
-  
-  <xsl:template match="dbk:footnote/dbk:para[1]/text()[preceding::text()[1]/parent::dbk:phrase/@role = 'hub:identifier']" mode="ttt:add-ids">
-    <xsl:value-of select="replace(., '^\s+', '')"/>
   </xsl:template>
   
 
@@ -169,7 +174,7 @@
   <xsl:template match="text()[matches(., '^\s+$')][name(..) = $ttt:whitespace-ignoring-element-names]" mode="ttt:discard"/>
 
   <xsl:template match="*[parent::*]
-                        [not(name() = $ttt:content-element-names)]
+                        [ttt:is-placeholder-element(.) or not(ttt:is-content-element(.))]
                         [not(self::ttt:normalized-space)]" mode="ttt:discard">
     <xsl:call-template name="ttt:mark-as-placeholder"/>
   </xsl:template>

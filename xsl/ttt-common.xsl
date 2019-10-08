@@ -37,8 +37,8 @@
              )'" />
   
   <xsl:function name="ttt:is-para-like" as="xs:boolean">
-    <xsl:param name="element" as="element(*)"/>
-    <xsl:sequence select="name($element) = ('para', 'simpara', 'title', 'caption')"/>
+    <xsl:param name="element" as="node()"/>
+    <xsl:sequence select="local-name($element) = ('para', 'simpara', 'title', 'caption')"/>
   </xsl:function>
   
   

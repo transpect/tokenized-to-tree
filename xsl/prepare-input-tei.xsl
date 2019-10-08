@@ -23,7 +23,20 @@
     select="('app', 'subst')"/>
 
   <xsl:variable name="ttt:placeholder-element-names" as="xs:string+"
-    select="('app', 'note', 'ttt:pi', 'ttt:comment', 'rdg', 'lb', 'pb', 'del')"/>
+    select="('app', 'note', 'ttt:pi', 'ttt:comment', 'rdg', 'lb', 'pb', 'del', 'lem')"/>
+  
+  <xsl:function name="ttt:is-placeholder-element" as="xs:boolean">
+    <xsl:param name="elt" as="element(*)"/>
+    <xsl:choose>
+      <xsl:when test="$elt/self::tei:lem[every $n in node()[normalize-space() or self::*]
+                                         satisfies ttt:is-para-like($n)]">
+        <xsl:sequence select="true()"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:sequence select="local-name($elt) = $ttt:placeholder-element-names"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:function>
   
   <!--<xsl:template match="tei:lb[not(node())]" mode="ttt:discard">
     <xsl:next-match/>
@@ -31,9 +44,9 @@
   </xsl:template>-->
     
   <xsl:function name="ttt:is-para-like" as="xs:boolean">
-    <xsl:param name="element" as="element(*)"/>
+    <xsl:param name="element" as="node()"/>
     <xsl:choose>
-      <xsl:when test="$element/parent::tei:wrapper">
+      <xsl:when test="$element[self::*]/parent::tei:wrapper">
         <xsl:sequence select="false()"/>
       </xsl:when>
       <xsl:otherwise>
