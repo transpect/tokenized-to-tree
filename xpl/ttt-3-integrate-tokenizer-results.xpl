@@ -61,11 +61,16 @@
     </p:input>
   </p:xslt>
   
+  <tr:store-debug pipeline-step="tokenized-to-tree/process-paras/extract-schmatron" extension="sch">
+    <p:with-option name="active" select="$debug" />
+    <p:with-option name="base-uri" select="$debug-dir-uri" />
+  </tr:store-debug>
+  
   <p:sink name="sink2"/>
 
   <p:validate-with-schematron assert-valid="true" name="sch">
     <p:input port="source">
-      <p:pipe port="result" step="rng"/>
+      <p:pipe port="source" step="process-paras"/>
     </p:input>
     <p:input port="schema">
       <p:pipe port="result" step="extract-sch"/>
@@ -74,6 +79,24 @@
       <p:empty/>
     </p:input>
   </p:validate-with-schematron>
+  <!--
+  <p:sink/>
+  
+  <tr:store-debug pipeline-step="tokenized-to-tree/process-paras/schmatron-report">
+    <p:input port="source">
+      <p:pipe port="report" step="sch"></p:pipe>
+    </p:input>
+    <p:with-option name="active" select="$debug" />
+    <p:with-option name="base-uri" select="$debug-dir-uri" />
+  </tr:store-debug>
+  
+  <p:sink></p:sink>
+  
+  <p:identity>
+    <p:input port="source">
+      <p:pipe port="result" step="sch"/>
+    </p:input>
+  </p:identity>-->
   
   <tr:xslt-mode prefix="tokenized-to-tree/patch-results/2" mode="ttt:patch-token-results" msg="yes" name="patch-token-results">
     <p:documentation>Transfers the tokenization/analysis information (each ttt:para’s 2nd child) to the normalized

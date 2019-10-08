@@ -229,7 +229,7 @@
   <sch:ns uri="http://transpect.io/tokenized-to-tree" prefix="ttt"/>
   
   <sch:pattern id="same-length">
-    <sch:rule context="ttt:para[ttt:tokens]">
+    <sch:rule context="ttt:para[count(ttt:tokens) gt 1]">
       <sch:assert test="string-length(*[1]/@ttt:text) &gt;= (*[2]/self::ttt:tokens/*/@end)[last()]">There may be no
       token at a string position that is greater than the string length of the normalized input.</sch:assert>
     </sch:rule>
