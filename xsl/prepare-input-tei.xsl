@@ -23,7 +23,7 @@
     select="('app', 'subst')"/>
 
   <xsl:variable name="ttt:placeholder-element-names" as="xs:string+"
-    select="('app', 'note', 'ttt:pi', 'ttt:comment', 'rdg', 'lb', 'pb', 'del', 'lem')"/>
+    select="('note', 'ttt:pi', 'ttt:comment', 'rdg', 'lb', 'pb', 'del')"/>
   
   <xsl:function name="ttt:is-placeholder-element" as="xs:boolean">
     <xsl:param name="elt" as="element(*)"/>
