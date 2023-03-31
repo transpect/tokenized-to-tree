@@ -128,7 +128,7 @@
                       idiv $glh
                       - 1"/>-->
             <!-- Measuring against the absolute grid: -->
-            <xsl:variable name="skip" as="xs:double" 
+            <xsl:variable name="skip" as="xs:double"
               select="ppp:gridpos-double(@top, $glh, $opt) - ppp:gridpos-double(preceding-sibling::text[1]/@top, $glh, $opt) - 1"/>
             <xsl:if test="$skip &gt; 0">
               <xsl:attribute name="skip" select="xs:integer($skip)"/>
@@ -300,6 +300,29 @@
                                           )"/>
       <xsl:copy-of select="node()"/>
     </xsl:copy>
+  </xsl:template>
+  
+  <!--
+    Sometimes the poppler output has separate text elements for space and non space text fragments, like:
+    
+    <text top="205.011100" left="343.361680" width="12.827826" height="9.857100" font="5"><i>der</i></text>
+    <text top="211.508000" left="356.189506" width="0.001020" height="1.300000" font="2"> </text>
+    <text top="205.011100" left="358.915660" width="33.219972" height="9.857100" font="5"><i>Fremde.</i></text>
+    <text top="211.508000" left="392.135632" width="0.001020" height="1.300000" font="2"> </text>
+    
+    in that case mode spaces helps us by generating the needed space regex part.
+    
+    Sometimes the poppler output has mixed text elements for text fragments that include whitespace, like:
+    
+    <text top="266.769600" left="53.858000" width="289.253664" height="10.135200" font="0">seiner Entfernung von sechshundert Kilometern geduldig bereit war</text>
+    
+    in that case we have to escape the whitespace in order to match the ttt:text later on.
+  -->
+  <xsl:template match="text" mode="regex" priority="1">
+    <xsl:variable name="_next_match">
+      <xsl:next-match/>
+    </xsl:variable>
+    <xsl:value-of select="replace($_next_match, '\s+', '[\\s\\p{Zs}&#x200B;]+')"/>
   </xsl:template>
   
   <xsl:template match="text" mode="regex">
