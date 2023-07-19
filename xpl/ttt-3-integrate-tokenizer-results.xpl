@@ -120,12 +120,22 @@
     <p:with-param name="map-higher-unicode-planes" select="$map-higher-unicode-planes"/>
   </tr:xslt-mode>
   
+  <tr:xslt-mode prefix="tokenized-to-tree/patch-results/4" mode="ttt:move-start-end-elts-from-ttt-generated" msg="yes" name="move-start-end-elts-from-ttt-generated">
+    <p:documentation>When a ttt:start or ttt:end is in a ttt:generated, it will be removed later on. Example: a generated ` - ` for a list item. Lets move it out of the ttt:generated.</p:documentation>
+    <p:with-option name="debug" select="$debug"/>
+    <p:with-option name="debug-dir-uri" select="$debug-dir-uri"/>
+    <p:input port="models"><p:empty/></p:input>
+    <p:input port="parameters"><p:empty/></p:input>
+    <p:input port="stylesheet"><p:pipe port="patch-token-stylesheet" step="process-paras"/></p:input>
+    <p:with-param name="map-higher-unicode-planes" select="$map-higher-unicode-planes"/>
+  </tr:xslt-mode>
+  
   <p:choose name="milestones-only">
     <p:when test="$milestones-only = 'yes'">
       <p:identity/>
     </p:when>
     <p:otherwise>
-      <tr:xslt-mode prefix="tokenized-to-tree/patch-results/4" mode="ttt:pull-up-delims" msg="yes" name="pull-up-delims">
+      <tr:xslt-mode prefix="tokenized-to-tree/patch-results/5" mode="ttt:pull-up-delims" msg="yes" name="pull-up-delims">
         <p:with-option name="debug" select="$debug"/>
         <p:with-option name="debug-dir-uri" select="$debug-dir-uri"/>
         <p:input port="models"><p:empty/></p:input>

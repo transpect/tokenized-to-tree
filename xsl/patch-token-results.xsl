@@ -9,7 +9,7 @@
 
   <xsl:import href="ttt-common.xsl"/>
 
-  <xsl:template match="@* | *" mode="ttt:patch-token-results ttt:eliminate-duplicate-start-end-elts ttt:pull-up-delims">
+  <xsl:template match="@* | *" mode="ttt:patch-token-results ttt:eliminate-duplicate-start-end-elts ttt:move-start-end-elts-from-ttt-generated ttt:pull-up-delims">
     <xsl:copy>
       <xsl:apply-templates select="@*, node()" mode="#current"/>
     </xsl:copy>
@@ -127,6 +127,22 @@
   <xsl:template match="ttt:start[ancestor::ttt:para//ttt:start[@token-id = current()/@token-id][. &gt;&gt; current()]]" 
     mode="ttt:eliminate-duplicate-start-end-elts"/>
   
+
+  <xsl:template match="ttt:generated" mode="ttt:move-start-end-elts-from-ttt-generated">
+    <xsl:apply-templates select=".//(ttt:start | ttt:end)" mode="#current">
+      <xsl:with-param name="render" as="xs:boolean" select="true()" tunnel="yes"/>
+    </xsl:apply-templates>
+    <xsl:next-match>
+      <xsl:with-param name="render" as="xs:boolean" select="false()" tunnel="yes"/>
+    </xsl:next-match>
+  </xsl:template>
+  
+  <xsl:template match="ttt:start | ttt:end" mode="ttt:move-start-end-elts-from-ttt-generated">
+    <xsl:param name="render" as="xs:boolean" select="true()" tunnel="yes"/>
+    <xsl:if test="$render">
+      <xsl:next-match/>
+    </xsl:if>
+  </xsl:template>
 
 
   <xsl:template match="ttt:para/*" mode="ttt:pull-up-delims">
