@@ -130,6 +130,11 @@
             <!-- Measuring against the absolute grid: -->
             <xsl:variable name="skip" as="xs:double"
               select="ppp:gridpos-double(@top, $glh, $opt) - ppp:gridpos-double(preceding-sibling::text[1]/@top, $glh, $opt) - 1"/>
+            <!--<xsl:attribute name="debugskipA" select="ppp:gridpos-double(@top, $glh, $opt)"/>
+            <xsl:attribute name="debugskipB" select="ppp:gridpos-double(preceding-sibling::text[1]/@top, $glh, $opt)"/>
+            <xsl:attribute name="debugskipC" select="$skip"/>
+            <xsl:attribute name="debugskipD" select="$glh"/>
+            <xsl:attribute name="debugskipE" select="$opt"/>-->
             <xsl:if test="$skip &gt; 0">
               <xsl:attribute name="skip" select="xs:integer($skip)"/>
             </xsl:if>
@@ -323,6 +328,21 @@
       <xsl:next-match/>
     </xsl:variable>
     <xsl:value-of select="replace($_next_match, '\s+', '[\\s\\p{Zs}&#x200B;]+')"/>
+  </xsl:template>
+  
+  <xsl:template match="text" mode="regex" priority="0.9">
+    <xsl:variable name="_next_match">
+      <xsl:next-match/>
+    </xsl:variable>
+    <xsl:value-of select="replace($_next_match, '\[\s+', '[[\\s\\p{Zs}&#x200B;]*')"/>
+  </xsl:template>
+  
+  <!-- sometimes latex adds spaces, remove -->
+  <xsl:template match="text" mode="regex" priority="0.8">
+    <xsl:variable name="_next_match">
+      <xsl:next-match/>
+    </xsl:variable>
+    <xsl:value-of select="replace($_next_match, '\s+\]', '[\\s\\p{Zs}&#x200B;]*]')"/>
   </xsl:template>
   
   <xsl:template match="text" mode="regex">
