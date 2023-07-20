@@ -62,10 +62,10 @@
     </ttt:ignorable-text>
   </xsl:template>
   
-  <xsl:variable name="ttt:zero-width-joiner-or-soft-hyphen-regex" as="xs:string" select="'[&#xad;&#x200c;]+'"/>
+  <xsl:variable name="ttt:zero-width-joiner-or-soft-hyphen-or-zero-width-space-regex" as="xs:string" select="'[&#xad;&#x200c;&#x200b;]+'"/>
   
-  <xsl:template match="*[ttt:is-para-like(.)]//text()[matches(., $ttt:zero-width-joiner-or-soft-hyphen-regex)]" mode="ttt:add-ids">
-    <xsl:analyze-string select="." regex="{$ttt:zero-width-joiner-or-soft-hyphen-regex}">
+  <xsl:template match="*[ttt:is-para-like(.)]//text()[matches(., $ttt:zero-width-joiner-or-soft-hyphen-or-zero-width-space-regex)]" mode="ttt:add-ids">
+    <xsl:analyze-string select="." regex="{$ttt:zero-width-joiner-or-soft-hyphen-or-zero-width-space-regex}">
       <xsl:matching-substring>
         <xsl:variable name="prelim" as="element(ttt:ignorable-text)">
           <ttt:ignorable-text>
