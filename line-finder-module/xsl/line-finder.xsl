@@ -12,6 +12,8 @@
 
   <xsl:variable name="ttt:line-finder-regex-flags" as="xs:string" select="'si'"/>
 
+  <xsl:param name="ignore-matched-lines" select="false()"/>
+
   <!-- Mode: find-matching-lines -->
   
   <xsl:template match="/*" mode="find-matching-lines">
@@ -22,7 +24,7 @@
       </xsl:with-param>
     </xsl:next-match>
   </xsl:template>
-  
+
   <xsl:template match="ttt:para" mode="find-matching-lines">
     <xsl:param name="lines" as="element(line)*" tunnel="yes"/>
     <xsl:variable name="matching-lines" as="document-node()">
@@ -69,29 +71,29 @@
   </xsl:template>
   
   <xsl:function name="ttt:probably-adjacent-line" as="xs:boolean">
-    <xsl:param name="line" as="element(line)"/>
-    <xsl:variable name="fs" as="element(line)?" select="$line/following-sibling::line[1]"/>
-    <xsl:variable name="ps" as="element(line)?" select="$line/preceding-sibling::line[1]"/>
+    <xsl:param name="_line" as="element(line)"/>
+    <xsl:variable name="fs" as="element(line)?" select="$_line/following-sibling::line[1]"/>
+    <xsl:variable name="ps" as="element(line)?" select="$_line/preceding-sibling::line[1]"/>
     <xsl:sequence select="(
-                            ($ps/@p = $line/@p)
+                            ($ps/@p = $_line/@p)
                             and
-                            (number($ps/@n) = number($line/@n) - 1)
+                            (number($ps/@n) = number($_line/@n) - 1)
                           )
                           or
                           (
-                            ($fs/@p = $line/@p)
+                            ($fs/@p = $_line/@p)
                             and
-                            (number($fs/@n) = number($line/@n) + 1)
+                            (number($fs/@n) = number($_line/@n) + 1)
                           )
                           or
                           (
-                            (number($ps/@p) = number($line/@p) - 1)
+                            (number($ps/@p) = number($_line/@p) - 1)
                             and
-                            (number($line/@n) = 1)
+                            (number($_line/@n) = 1)
                           )
                           or
                           (
-                            (number($fs/@p) = number($line/@p) + 1)
+                            (number($fs/@p) = number($_line/@p) + 1)
                             and
                             (number($fs/@n) = 1)
                           )"/>
@@ -113,15 +115,26 @@
   </xsl:template>
   
   <!-- Mode: try-coverage -->
-  
-  <xsl:template match="ttt:para" mode="try-coverage">
+
+  <xsl:template match="ttt:paras[$ignore-matched-lines]" mode="try-coverage" priority="1">
     <xsl:copy>
-      <xsl:copy-of select="@*, node()"/>
-      <xsl:variable name="ordered-results" as="document-node()">
-        <xsl:document>
-          <xsl:sequence select="ttt:try-coverage(*[1]/@ttt:text, line)"/>
-        </xsl:document>
-      </xsl:variable>
+      <xsl:apply-templates select="@*" mode="#current"/>
+      <xsl:apply-templates select="ttt:para[1]" mode="#current">
+        <xsl:with-param name="used-lines" as="xs:string*" select="()" tunnel="yes"/>
+      </xsl:apply-templates>
+    </xsl:copy>
+  </xsl:template>
+
+  <xsl:template match="ttt:para" mode="try-coverage">
+    <xsl:param name="used-lines" as="xs:string*" tunnel="yes"/>
+    <xsl:variable name="_lines" as="element(line)*" select="line[not(@xml:id = ($used-lines))]"/>
+    <xsl:variable name="ordered-results" as="document-node()">
+      <xsl:document>
+        <xsl:sequence select="ttt:try-coverage(*[1]/@ttt:text, $_lines)"/>
+      </xsl:document>
+    </xsl:variable>
+    <xsl:copy>
+      <xsl:copy-of select="@*, node() except line[@xml:id = ($used-lines)]"/>
       <coverage>
         <xsl:if test="count($ordered-results/match) ne count(line[@regex])">
           <xsl:attribute name="diff" select="count(line[@regex]) - count($ordered-results/match)"/>
@@ -129,6 +142,11 @@
         <xsl:apply-templates select="$ordered-results" mode="#current"/>
       </coverage>
     </xsl:copy>
+    <xsl:if test="$ignore-matched-lines">
+      <xsl:apply-templates select="following-sibling::ttt:para[1]" mode="#current">
+        <xsl:with-param name="used-lines" select="($used-lines, ($ordered-results/match/@xml:id/string()))" as="xs:string*" tunnel="yes"/>
+      </xsl:apply-templates>
+    </xsl:if>
   </xsl:template>
   
   <xsl:template match="match | non-match | space" mode="try-coverage">
@@ -136,12 +154,13 @@
       <xsl:variable name="up-to-here" select="sum(for $p in preceding-sibling::* return string-length($p))"/>
       <xsl:attribute name="start" select="$up-to-here"/>
       <xsl:attribute name="end" select="$up-to-here + string-length(.)"/>
-      <xsl:copy-of select="@p | @n | @skip | @hyphenated"/>
+      <xsl:copy-of select="@p | @n | @skip | @hyphenated | @xml:id"/>
       <xsl:value-of select="."/>
     </xsl:copy>
   </xsl:template>
   
   <xsl:function name="ttt:try-coverage" as="element(*)*"><!-- match, space or non-match -->
+  <!--<xsl:function name="ttt:try-coverage" as="node()*"><!-\- match, space or non-match -\->-->
     <xsl:param name="uncovered-string" as="xs:string"/>
     <xsl:param name="line-candidates" as="element(line)*"/>
     <xsl:choose>
@@ -158,7 +177,7 @@
           <xsl:value-of select="$uncovered-string"/>
         </non-match>
       </xsl:when>
-      <xsl:when test="matches($uncovered-string, concat('^\s*', $line-candidates[1]/@regex), $ttt:line-finder-regex-flags)
+      <xsl:when test="not($ignore-matched-lines) and matches($uncovered-string, concat('^\s*', $line-candidates[1]/@regex), $ttt:line-finder-regex-flags)
                       and (
                         some $r in $line-candidates[position() gt 1]
                                                    [string-length(@regex) gt string-length($line-candidates[1]/@regex)]/@regex
@@ -177,7 +196,7 @@
         </xsl:if>
         <match>
           <xsl:attribute name="xml:space" select="'preserve'"/>
-          <xsl:copy-of select="$line-candidates[1]/(@p, @n, @skip, @hyphenated)"/>
+          <xsl:copy-of select="$line-candidates[1]/(@p, @n, @skip, @hyphenated, @xml:id)"/>
           <xsl:value-of select="replace($uncovered-string, concat('^\s*', $line-candidates[1]/@regex, '.*$'), '$1', $ttt:line-finder-regex-flags)"/>
         </match>
         <xsl:variable name="space" as="xs:string" 
@@ -205,7 +224,7 @@
         <xsl:analyze-string select="$uncovered-string" regex="{$line-candidates[1]/@regex}" flags="{$ttt:line-finder-regex-flags}">
           <xsl:matching-substring>
             <match>
-              <xsl:copy-of select="$line-candidates[1]/(@p, @n, @skip, @hyphenated)"/>
+              <xsl:copy-of select="$line-candidates[1]/(@p, @n, @skip, @hyphenated, @xml:id)"/>
               <xsl:attribute name="xml:space" select="'preserve'"/>
               <xsl:value-of select="."/>
             </match>

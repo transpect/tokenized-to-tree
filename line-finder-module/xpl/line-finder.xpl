@@ -23,12 +23,23 @@
   
   <p:output port="result" primary="true"/>
 
+  <p:option name="ignore-matched-lines" required="false" select="'false'">
+    <p:documentation>Sometimes several ttt:para are nearly identical.
+      If multiple ttt:para/*/@ttt:text have an identical beginning, that match multiple nearly or completely identical line/@regex,
+      the first matching line/@regex always "wins".
+      Consequently some line/@regex are tagged multiple times, others are omitted.
+      This option triggers two things:
+      1) in mode try-coverage, lines that have already been matched in a ttt:para, will not be used as potential lines for following ttt:para and
+      2) if a line-candidate matches, a following, longer match will not be used instead.
+    </p:documentation>
+  </p:option>
+  
   <p:option name="debug" required="false" select="'no'"/>
   <p:option name="debug-dir-uri" required="false" select="'debug'"/>
   
   <p:import href="http://transpect.io/xproc-util/xml-model/xpl/prepend-xml-model.xpl"/>
   <p:import href="http://transpect.io/xproc-util/store-debug/xpl/store-debug.xpl"/>
-  
+
   <p:xslt name="find-matching-lines" initial-mode="find-matching-lines">
     <p:input port="source">
       <p:pipe port="ttt-paras" step="line-finder"/>
@@ -49,7 +60,7 @@
     <p:input port="stylesheet">
       <p:pipe port="stylesheet" step="line-finder"/>
     </p:input>
-    <p:input port="parameters"><p:empty/></p:input>
+    <p:with-param name="ignore-matched-lines" select="$ignore-matched-lines"/>
   </p:xslt>
 
   <tr:store-debug pipeline-step="tokenized-to-tree/line-finder/covfefe">
