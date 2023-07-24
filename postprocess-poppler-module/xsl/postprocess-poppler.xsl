@@ -279,6 +279,43 @@
     <hyphen>-</hyphen>
   </xsl:template>
   
+  <xsl:function name="ppp:replace-for-regex" as="xs:string">
+    <xsl:param name="_string" as="xs:string"/>
+    <xsl:sequence select="replace(
+                            replace(
+                              replace(
+                                replace(
+                                  replace(
+                                    replace(
+                                      replace(
+                                        replace(
+                                          $_string, 
+                                          '\\\.\\\.\\\.', 
+                                          '(\\.\\.\\.|…)'
+                                        ),
+                                        '¯I',
+                                        'Ī'
+                                      ),
+                                      '¯e',
+                                      'ē'
+                                    ),
+                                    '¯o',
+                                    'ō'
+                                  ),
+                                  '¯u',
+                                  'ū'
+                                ),
+                                '¯a',
+                                'ā'
+                              ),
+                              '([duz]\\\.)([aBhRT]\\\.)',
+                              '$1[\\s\\p{Zs}​]*$2'
+                            ),
+                            '([Iiz]\\\.|AK)([dB]\\\.|8)',
+                            '$1[\\s\\p{Zs}​]*$2'
+                          )"/>
+  </xsl:function>
+  
   <xsl:template match="line[text]" mode="regex">
     <xsl:copy>
       <xsl:apply-templates select="@*" mode="#current"/>
@@ -286,23 +323,7 @@
         <xsl:text>(</xsl:text>
         <xsl:apply-templates select="*" mode="#current"/>
       </xsl:variable>
-      <xsl:attribute name="regex" select="replace(
-                                            replace(
-                                              replace(
-                                                replace(
-                                                  string-join($proto-regex, ''), 
-                                                  '\\\.\\\.\\\.', 
-                                                  '(\\.\\.\\.|…)'
-                                                ),
-                                                '¯a',
-                                                'ā'
-                                              ),
-                                              '([duz]\\\.)([aBhRT]\\\.)',
-                                              '$1[\\s\\p{Zs}​]*$2'
-                                            ),
-                                            '([Iiz]\\\.|AK)([dB]\\\.|8)',
-                                            '$1[\\s\\p{Zs}​]*$2'
-                                          )"/>
+      <xsl:attribute name="regex" select="ppp:replace-for-regex(string-join($proto-regex, ''))"/>
       <xsl:copy-of select="node()"/>
     </xsl:copy>
   </xsl:template>
@@ -330,6 +351,7 @@
     <xsl:value-of select="replace($_next_match, '\s+', '[\\s\\p{Zs}&#x200B;]+')"/>
   </xsl:template>
   
+  <!-- sometimes latex adds spaces, remove -->
   <xsl:template match="text" mode="regex" priority="0.9">
     <xsl:variable name="_next_match">
       <xsl:next-match/>
@@ -337,7 +359,6 @@
     <xsl:value-of select="replace($_next_match, '\[\s+', '[[\\s\\p{Zs}&#x200B;]*')"/>
   </xsl:template>
   
-  <!-- sometimes latex adds spaces, remove -->
   <xsl:template match="text" mode="regex" priority="0.8">
     <xsl:variable name="_next_match">
       <xsl:next-match/>
