@@ -59,13 +59,16 @@
     <xsl:variable name="lines" as="document-node(element(pdf2xml))">
       <xsl:document><xsl:apply-templates select="$remove-uninteresting" mode="lines"/></xsl:document>
     </xsl:variable>
+    <xsl:variable name="preprocess-text" as="document-node(element(pdf2xml))">
+      <xsl:document><xsl:apply-templates select="$lines" mode="preprocess-text"/></xsl:document>
+    </xsl:variable>
     <xsl:variable name="spaces" as="document-node(element(pdf2xml))">
-      <xsl:document><xsl:apply-templates select="$lines" mode="spaces"/></xsl:document>
+      <xsl:document><xsl:apply-templates select="$preprocess-text" mode="spaces"/></xsl:document>
     </xsl:variable>
     <xsl:apply-templates select="$spaces" mode="regex"/>
   </xsl:template>
   
-  <xsl:template match="@* | node()" mode="lines regex remove-uninteresting spaces">
+  <xsl:template match="@* | node()" mode="lines preprocess-text regex remove-uninteresting spaces">
     <xsl:copy>
       <xsl:apply-templates select="@*, node()" mode="#current"/>
     </xsl:copy>
@@ -363,8 +366,23 @@
     <xsl:variable name="_next_match">
       <xsl:next-match/>
     </xsl:variable>
-    <xsl:value-of select="replace($_next_match, '\s+\]', '[\\s\\p{Zs}&#x200B;]*]')"/>
+    <xsl:value-of select="replace($_next_match, '\s+(\\)?\]', '[\\s\\p{Zs}&#x200B;]*$1]')"/>
   </xsl:template>
+  
+  <xsl:function name="ppp:last-text-regex-suffix" as="xs:string">
+    <xsl:param name="_text" as="element(text)"/>
+    <xsl:choose>
+      <xsl:when test="matches($_text, '\p{Pd}$')">
+        <xsl:sequence select="')([\s\p{Zs}&#x200B;]*|$)'"/>
+      </xsl:when>
+      <!--<xsl:when test="matches($_text, '/$')">
+        <xsl:sequence select="')([\s\p{Zs}&#x200B;]*|$)'"/>
+      </xsl:when>-->
+      <xsl:otherwise>
+        <xsl:sequence select="')([\s\p{Zs}&#x200B;]+|$)'"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:function>
   
   <xsl:template match="text" mode="regex">
     <xsl:if test="matches(., '^…') and not(preceding-sibling::*[1]/self::space)">
@@ -375,14 +393,7 @@
     </xsl:if>
     <xsl:value-of select="ppp:regexify(.)"/>
     <xsl:if test=". is ../*[last()]">
-      <xsl:choose>
-        <xsl:when test="matches(., '\p{Pd}$')">
-          <xsl:value-of select="')([\s\p{Zs}&#x200B;]*|$)'"/>    
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:value-of select="')([\s\p{Zs}&#x200B;]+|$)'"/>
-        </xsl:otherwise>
-      </xsl:choose>
+      <xsl:value-of select="ppp:last-text-regex-suffix(.)"/>
     </xsl:if>
   </xsl:template>
   
