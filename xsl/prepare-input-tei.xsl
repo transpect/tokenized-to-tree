@@ -55,7 +55,7 @@
     </xsl:choose>
   </xsl:function>
   
-    <xsl:template match="app/text()[not(normalize-space())]" mode="ttt:add-ids">
+  <xsl:template match="app/text()[not(normalize-space())]" mode="ttt:add-ids">
     <ttt:ignorable-text>
       <xsl:attribute name="xml:id" select="concat('NOID_', generate-id())"/>
       <xsl:copy/>
