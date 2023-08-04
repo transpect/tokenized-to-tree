@@ -38,7 +38,7 @@
     </p:input>
   </p:parameters>
   
-  <p:xslt name="apply-xsl">
+  <p:xslt name="remove-uninteresting" initial-mode="remove-uninteresting">
     <p:input port="source">
       <p:pipe port="source" step="postprocess-poppler"/>
     </p:input>
@@ -50,7 +50,63 @@
     </p:input>
   </p:xslt>
 
-  <tr:store-debug pipeline-step="tokenized-to-tree/postprocess-poppler">
+  <tr:store-debug pipeline-step="tokenized-to-tree/postprocess-poppler/01_remove-uninteresting">
+    <p:with-option name="active" select="$debug"/>
+    <p:with-option name="base-uri" select="$debug-dir-uri"/>
+  </tr:store-debug>
+  
+  <p:xslt name="lines" initial-mode="lines">
+    <p:input port="parameters">
+      <p:pipe port="result" step="params"/>
+    </p:input>
+    <p:input port="stylesheet">
+      <p:pipe port="stylesheet" step="postprocess-poppler"/>
+    </p:input>
+  </p:xslt>
+
+  <tr:store-debug pipeline-step="tokenized-to-tree/postprocess-poppler/02_lines">
+    <p:with-option name="active" select="$debug"/>
+    <p:with-option name="base-uri" select="$debug-dir-uri"/>
+  </tr:store-debug>
+  
+  <p:xslt name="preprocess-text" initial-mode="preprocess-text">
+    <p:input port="parameters">
+      <p:pipe port="result" step="params"/>
+    </p:input>
+    <p:input port="stylesheet">
+      <p:pipe port="stylesheet" step="postprocess-poppler"/>
+    </p:input>
+  </p:xslt>
+
+  <tr:store-debug pipeline-step="tokenized-to-tree/postprocess-poppler/03_preprocess-text">
+    <p:with-option name="active" select="$debug"/>
+    <p:with-option name="base-uri" select="$debug-dir-uri"/>
+  </tr:store-debug>
+  
+  <p:xslt name="spaces" initial-mode="spaces">
+    <p:input port="parameters">
+      <p:pipe port="result" step="params"/>
+    </p:input>
+    <p:input port="stylesheet">
+      <p:pipe port="stylesheet" step="postprocess-poppler"/>
+    </p:input>
+  </p:xslt>
+
+  <tr:store-debug pipeline-step="tokenized-to-tree/postprocess-poppler/04_spaces">
+    <p:with-option name="active" select="$debug"/>
+    <p:with-option name="base-uri" select="$debug-dir-uri"/>
+  </tr:store-debug>
+  
+  <p:xslt name="regex" initial-mode="regex">
+    <p:input port="parameters">
+      <p:pipe port="result" step="params"/>
+    </p:input>
+    <p:input port="stylesheet">
+      <p:pipe port="stylesheet" step="postprocess-poppler"/>
+    </p:input>
+  </p:xslt>
+
+  <tr:store-debug pipeline-step="tokenized-to-tree/postprocess-poppler/05_regex">
     <p:with-option name="active" select="$debug"/>
     <p:with-option name="base-uri" select="$debug-dir-uri"/>
   </tr:store-debug>
