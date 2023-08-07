@@ -193,48 +193,57 @@
     </xsl:copy>
   </xsl:template>-->
 
-  <xsl:template match="text[not(i)][for $p in preceding-sibling::text[1] 
-                                    return number(@left) gt (number($p/@left) + number($p/@width) + $space-threshold-upright_double)]" 
-                mode="spaces" priority="2">
-    <xsl:variable name="p" select="preceding-sibling::text[1]" as="element(text)"/>
-    <xsl:call-template name="ppp:space">
-      <xsl:with-param name="width" select="number(@left) - (number($p/@left) + number($p/@width) + 1)"/>
-    </xsl:call-template>
-    <xsl:next-match/>
-  </xsl:template>
-  
-  <xsl:template match="text[not(i)][for $p in preceding-sibling::text[1] 
-                                    return number(@left) - (number($p/@left) + number($p/@width)) = $space-threshold-upright_double]" 
-                mode="spaces" priority="2">
-    <xsl:variable name="p" select="preceding-sibling::text[1]" as="element(text)"/>
-    <xsl:call-template name="ppp:space">
-      <xsl:with-param name="width" select="number(@left) - (number($p/@left) + number($p/@width))"/>
-      <xsl:with-param name="maybe" select="true()"/>
-    </xsl:call-template>
-    <xsl:next-match/>
-  </xsl:template>
-  
-  <xsl:template match="text[i][for $p in preceding-sibling::text[1] 
-                               return number(@left) gt (number($p/@left) + number($p/@width) + $space-threshold-italic_double)]" 
-                mode="spaces" priority="2">
-    <xsl:variable name="p" select="preceding-sibling::text[1]" as="element(text)"/>
-    <xsl:call-template name="ppp:space">
-      <xsl:with-param name="width" select="number(@left) - (number($p/@left) + number($p/@width) + 1)"/>
-    </xsl:call-template>
-    <xsl:next-match/>
-  </xsl:template>
-  
-  <xsl:template match="text[i][for $p in preceding-sibling::text[1] 
-                               return number(@left) - (number($p/@left) + number($p/@width) ) = $space-threshold-italic_double]" 
-                mode="spaces" priority="2">
-    <xsl:variable name="p" select="preceding-sibling::text[1]" as="element(text)"/>
-    <xsl:call-template name="ppp:space">
-      <xsl:with-param name="width" select="number(@left) - (number($p/@left) + number($p/@width))"/>
-      <xsl:with-param name="maybe" select="true()"/>
-    </xsl:call-template>
-    <xsl:next-match/>
-  </xsl:template>
+  <xsl:function name="ppp:distance-to-preceding-sibling-text" as="xs:double">
+    <xsl:param name="_text" as="element(text)"/>
+    <xsl:variable name="_preceding-sibling" select="$_text/preceding-sibling::text[1]" as="element(text)?"/>
+    <xsl:choose>
+      <xsl:when test="exists($_preceding-sibling)">
+        <xsl:sequence select="number($_text/@left) - number($_preceding-sibling/@width) - number($_preceding-sibling/@left)"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:sequence select="0.0"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:function>
 
+  <xsl:template match="text[not(i)][ppp:distance-to-preceding-sibling-text(.) gt  $space-threshold-upright_double]" 
+                mode="spaces" priority="2">
+    <xsl:variable name="p" select="preceding-sibling::text[1]" as="element(text)"/>
+    <xsl:call-template name="ppp:space">
+      <xsl:with-param name="width" select="ppp:distance-to-preceding-sibling-text(.)"/>
+    </xsl:call-template>
+    <xsl:next-match/>
+  </xsl:template>
+  
+  <xsl:template match="text[not(i)][ppp:distance-to-preceding-sibling-text(.) = $space-threshold-upright_double]" 
+                mode="spaces" priority="2">
+    <xsl:variable name="p" select="preceding-sibling::text[1]" as="element(text)"/>
+    <xsl:call-template name="ppp:space">
+      <xsl:with-param name="width" select="ppp:distance-to-preceding-sibling-text(.)"/>
+      <xsl:with-param name="maybe" select="true()"/>
+    </xsl:call-template>
+    <xsl:next-match/>
+  </xsl:template>
+    
+  <xsl:template match="text[i][ppp:distance-to-preceding-sibling-text(.) gt  $space-threshold-italic_double]" 
+                mode="spaces" priority="2">
+    <xsl:variable name="p" select="preceding-sibling::text[1]" as="element(text)"/>
+    <xsl:call-template name="ppp:space">
+      <xsl:with-param name="width" select="ppp:distance-to-preceding-sibling-text(.)"/>
+    </xsl:call-template>
+    <xsl:next-match/>
+  </xsl:template>
+  
+  <xsl:template match="text[i][ppp:distance-to-preceding-sibling-text(.) =  $space-threshold-italic_double]" 
+                mode="spaces" priority="2">
+    <xsl:variable name="p" select="preceding-sibling::text[1]" as="element(text)"/>
+    <xsl:call-template name="ppp:space">
+      <xsl:with-param name="width" select="ppp:distance-to-preceding-sibling-text(.)"/>
+      <xsl:with-param name="maybe" select="true()"/>
+    </xsl:call-template>
+    <xsl:next-match/>
+  </xsl:template>
+  
   <xsl:template name="ppp:space">
     <xsl:param name="width" as="xs:double"/>
     <xsl:param name="maybe" as="xs:boolean" select="false()"/>
