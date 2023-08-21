@@ -52,7 +52,12 @@
     <xsl:sequence select="(for $n in $string-val[normalize-space()] return xs:double($n), $default)[1]"/>
   </xsl:function>
 
-  <xsl:template match="/" mode="#default">
+  <!--
+    This template is obsolete.
+    PPP has moved from a micro pipeline to an XPROC orchestrated pipeline.
+    See postprocess-poppler.xpl
+  -->
+  <!--<xsl:template match="/" mode="#default">
     <xsl:variable name="remove-uninteresting" as="document-node(element(pdf2xml))">
       <xsl:document><xsl:apply-templates select="/" mode="remove-uninteresting"/></xsl:document>
     </xsl:variable>
@@ -66,9 +71,9 @@
       <xsl:document><xsl:apply-templates select="$preprocess-text" mode="spaces"/></xsl:document>
     </xsl:variable>
     <xsl:apply-templates select="$spaces" mode="regex"/>
-  </xsl:template>
+  </xsl:template>-->
   
-  <xsl:template match="@* | node()" mode="lines preprocess-text regex remove-uninteresting spaces">
+  <xsl:template match="@* | node()" mode="remove-uninteresting lines preprocess-text spaces split-text regex">
     <xsl:copy>
       <xsl:apply-templates select="@*, node()" mode="#current"/>
     </xsl:copy>
@@ -297,9 +302,17 @@
                                     replace(
                                       replace(
                                         replace(
-                                          $_string, 
-                                          '\\\.\\\.\\\.', 
-                                          '(\\.\\.\\.|…)'
+                                          replace(
+                                            replace(
+                                              $_string,
+                                              '\\\.\\\.\\\.',
+                                              '(\\.\\.\\.|…)'
+                                            ),
+                                          'ˆc',
+                                          'ĉ'
+                                          ),
+                                          '¯ı',
+                                          'ī'
                                         ),
                                         '¯I',
                                         'Ī'
@@ -390,7 +403,7 @@
   </xsl:function>
   
   <xsl:template match="text" mode="regex">
-    <xsl:if test="matches(., '^…') and not(preceding-sibling::*[1]/self::space)">
+    <xsl:if test="matches(., '^[…%]') and not(preceding-sibling::*[1]/self::space)">
     <!-- hack (U+2008 in source XML is too narrow and won’t be turned into a space).
       Question: does it appear in front of other chars, too? 
       Maybe move this hack to adaptations and create a named template hook here. -->
@@ -403,9 +416,12 @@
   </xsl:template>
   
   <xsl:template match="space" mode="regex">
+    <xsl:param name="maybe" as="xs:boolean" tunnel="yes" select="false()">
+      <!-- for calls via xsl:next-match -->
+    </xsl:param>
     <xsl:text>[\s\p{Zs}&#x200B;]</xsl:text>
     <xsl:choose>
-      <xsl:when test="@before-punctuation | @maybe">
+      <xsl:when test="@before-punctuation | @maybe or $maybe">
         <xsl:text>*</xsl:text>
       </xsl:when>
       <xsl:otherwise>
