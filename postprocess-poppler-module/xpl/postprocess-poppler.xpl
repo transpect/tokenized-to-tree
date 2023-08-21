@@ -39,6 +39,15 @@
   </p:parameters>
   
   <p:xslt name="remove-uninteresting" initial-mode="remove-uninteresting">
+    <p:documentation>
+      The interesting part of a PDF page will typicially span a rectangle and contain
+      the text that can actually be found in the XML that will be tagged.
+      The uninteresting part will typically be
+      - above the interesing part/page head: e.g. running title, page number
+      - below the interesing part/page foot: e.g. page number
+      - left or right of the interesting part/page margin: e.g. line numbers
+      This step depends on correct coordinates of the text fragments.
+    </p:documentation>
     <p:input port="source">
       <p:pipe port="source" step="postprocess-poppler"/>
     </p:input>
@@ -56,6 +65,10 @@
   </tr:store-debug>
   
   <p:xslt name="lines" initial-mode="lines">
+    <p:documentation>
+      Group the text fragments into lines.
+      This step depends on correct coordinates of the text fragments.
+    </p:documentation>
     <p:input port="parameters">
       <p:pipe port="result" step="params"/>
     </p:input>
@@ -70,6 +83,20 @@
   </tr:store-debug>
   
   <p:xslt name="preprocess-text" initial-mode="preprocess-text">
+    <p:documentation>
+      Sometimes characters will be represented as multiple characters/glyphs in a PDF
+      and sometimes they will be attributed to different lines after step 'lines'.
+      For example 'ḗ' might be represented by
+      &lt;line&gt;
+        &lt;text&gt;^&lt;/text&gt;
+      &lt;/line&gt;
+      &lt;line&gt;
+        &lt;text&gt;¯e&lt;/text&gt;
+      &lt;/line&gt;
+      This step is meant to get these replacements taken care of before steps 'spaces' and especially 'regex'.
+      This step does NOT depend on correct coordinates of the text fragments but 'spaces' does.
+      The coordinates should be left untouched.
+    </p:documentation>
     <p:input port="parameters">
       <p:pipe port="result" step="params"/>
     </p:input>
@@ -84,6 +111,12 @@
   </tr:store-debug>
   
   <p:xslt name="spaces" initial-mode="spaces">
+    <p:documentation>
+      Insert space elements based on the distance between individual text fragments.
+      In some PDF spaces are explicitly contained as glyphs, in others they are implicitly contained by gaps between text fragments.
+      Sometimes we have both.
+      This step depends on correct coordinates of the text fragments.
+    </p:documentation>
     <p:input port="parameters">
       <p:pipe port="result" step="params"/>
     </p:input>
@@ -97,7 +130,21 @@
     <p:with-option name="base-uri" select="$debug-dir-uri"/>
   </tr:store-debug>
   
-  <p:xslt name="regex" initial-mode="regex">
+  <p:xslt name="split-text" initial-mode="split-text">
+    <p:documentation>
+      Normalize (mostly) space representation of poppler output.
+      Remove spaces from text fragments by splitting text fragments with spaces
+      into several text fragments separated by space elements.
+      Some templates in step 'regex' might expect distinct text fragments for certain parts of the text.
+      For example because they were developed for poppler output with implicit spaces.
+      To facilitate resuability of these templates we have to normalize the text/space representation of the poppler output.
+      Further splitting might be necessary to generalize certain tasks of step 'regex'.
+      For example '15,17 1946]' might be represented five text fragments in one PDF, as four in another and in yet another as one.
+      In order to resue templates that expect '15', ',' and '17' to be repesented as three text fragments it might be necessary to
+      split at the space and to separate the comma.
+      This step does NOT depend on correct coordinates of the text fragments.
+      This step introduces text fragments without or with incorrect coordinates.
+    </p:documentation>
     <p:input port="parameters">
       <p:pipe port="result" step="params"/>
     </p:input>
@@ -106,7 +153,25 @@
     </p:input>
   </p:xslt>
 
-  <tr:store-debug pipeline-step="tokenized-to-tree/postprocess-poppler/05_regex">
+  <tr:store-debug pipeline-step="tokenized-to-tree/postprocess-poppler/05_split-text">
+    <p:with-option name="active" select="$debug"/>
+    <p:with-option name="base-uri" select="$debug-dir-uri"/>
+  </tr:store-debug>
+
+  <p:xslt name="regex" initial-mode="regex">
+    <p:documentation>
+      Generate the actual regex for each line.
+      This step does NOT depend on correct coordinates of the text fragments.
+    </p:documentation>
+    <p:input port="parameters">
+      <p:pipe port="result" step="params"/>
+    </p:input>
+    <p:input port="stylesheet">
+      <p:pipe port="stylesheet" step="postprocess-poppler"/>
+    </p:input>
+  </p:xslt>
+
+  <tr:store-debug pipeline-step="tokenized-to-tree/postprocess-poppler/06_regex">
     <p:with-option name="active" select="$debug"/>
     <p:with-option name="base-uri" select="$debug-dir-uri"/>
   </tr:store-debug>
