@@ -77,7 +77,24 @@
     </p:input>
   </p:xslt>
 
-  <tr:store-debug pipeline-step="tokenized-to-tree/postprocess-poppler/02_lines">
+  <tr:store-debug pipeline-step="tokenized-to-tree/postprocess-poppler/02_a_lines">
+    <p:with-option name="active" select="$debug"/>
+    <p:with-option name="base-uri" select="$debug-dir-uri"/>
+  </tr:store-debug>
+  
+  <p:xslt name="skips" initial-mode="skips">
+    <p:documentation>
+      Determine line numbers and skips.
+    </p:documentation>
+    <p:input port="parameters">
+      <p:pipe port="result" step="params"/>
+    </p:input>
+    <p:input port="stylesheet">
+      <p:pipe port="stylesheet" step="postprocess-poppler"/>
+    </p:input>
+  </p:xslt>
+
+  <tr:store-debug pipeline-step="tokenized-to-tree/postprocess-poppler/02_b_skips">
     <p:with-option name="active" select="$debug"/>
     <p:with-option name="base-uri" select="$debug-dir-uri"/>
   </tr:store-debug>

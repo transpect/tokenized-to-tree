@@ -73,7 +73,7 @@
     <xsl:apply-templates select="$spaces" mode="regex"/>
   </xsl:template>-->
   
-  <xsl:template match="@* | node()" mode="remove-uninteresting lines preprocess-text spaces split-text regex">
+  <xsl:template match="@* | node()" mode="remove-uninteresting lines skips preprocess-text spaces split-text regex">
     <xsl:copy>
       <xsl:apply-templates select="@*, node()" mode="#current"/>
     </xsl:copy>
@@ -137,7 +137,7 @@
                       - 1"/>-->
             <!-- Measuring against the absolute grid: -->
             <xsl:variable name="skip" as="xs:double"
-              select="ppp:gridpos-double(@top, $glh, $opt) - ppp:gridpos-double(preceding-sibling::text[1]/@top, $glh, $opt) - 1"/>
+              select="ppp:floor_gridpos-double(@top, $glh, $opt) - ppp:floor_gridpos-double(preceding-sibling::text[1]/@top, $glh, $opt) - 1"/>
             <!--<xsl:attribute name="debugskipA" select="ppp:gridpos-double(@top, $glh, $opt)"/>
             <xsl:attribute name="debugskipB" select="ppp:gridpos-double(preceding-sibling::text[1]/@top, $glh, $opt)"/>
             <xsl:attribute name="debugskipC" select="$skip"/>
@@ -146,6 +146,9 @@
             <xsl:if test="$skip &gt; 0">
               <xsl:attribute name="skip" select="xs:integer($skip)"/>
             </xsl:if>
+            <xsl:variable name="gridpos" as="xs:double" select="ppp:gridpos-double(@top, $glh, $opt)"/>
+            <xsl:attribute name="gridlinenumber" select="ppp:grid-line-number($gridpos)"/>
+            <xsl:attribute name="gridpos" select="$gridpos"/>
           </xsl:if>
           <xsl:apply-templates select="current-group()" mode="#current"/>
         </line>
@@ -167,7 +170,7 @@
     </xsl:choose>
   </xsl:function>
 
-  <xsl:function name="ppp:gridpos-double" as="xs:double">
+  <xsl:function name="ppp:floor_gridpos-double" as="xs:double">
     <xsl:param name="top" as="xs:double?"/>
     <xsl:param name="line-height" as="xs:double"/>
     <xsl:param name="page-top" as="xs:double"/>
@@ -180,6 +183,48 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:function>
+  
+  <xsl:function name="ppp:gridpos-double" as="xs:double">
+    <!--
+      How many multiples of $line-height is this $top away from $page-top?
+      Since $page-top is, in most cases, equal to $top of the first line, this will result
+      gridpos of 0 for line 1.
+    -->
+    <xsl:param name="top" as="xs:double?"/>
+    <xsl:param name="line-height" as="xs:double"/>
+    <xsl:param name="page-top" as="xs:double"/>
+    <xsl:choose>
+      <xsl:when test="empty($top)">
+        <xsl:sequence select="0"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:sequence select="($top - $page-top) div $line-height"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:function>
+  
+  <xsl:function name="ppp:grid-line-number" as="xs:integer">
+    <xsl:param name="gridpos" as="xs:double"/>
+    <xsl:sequence select="xs:integer($gridpos + 0.5) + 1">
+      <!--
+        With xs:integer we round down.
+        This means xs:integer($gridpos) for $gridpos = 4.0, 4.45, 4.67 and 4.9999 all would yield 4.
+        We add 0.5 before rounding to round up for fractional part >= 0.5.
+        We add 1 to the result because $gridpos = X implies line number X+1.
+      -->
+    </xsl:sequence>
+  </xsl:function>
+
+  <xsl:template match="line" mode="skips">
+    <xsl:copy>
+      <xsl:apply-templates select="@*" mode="#current"/>
+      <xsl:variable name="skip_new" select="@gridlinenumber - (preceding-sibling::line[1]/@gridlinenumber, 0)[1] - 1"/>
+      <xsl:if test="$skip_new gt 0">
+        <xsl:attribute name="skip_new" select="$skip_new"/>
+      </xsl:if>
+      <xsl:apply-templates select="node()" mode="#current"/>
+    </xsl:copy>
+  </xsl:template>
 
   <xsl:template match="text[not(i)][starts-with(., '\')]" 
                 mode="spaces" priority="2.5">

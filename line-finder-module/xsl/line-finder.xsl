@@ -154,7 +154,7 @@
       <xsl:variable name="up-to-here" select="sum(for $p in preceding-sibling::* return string-length($p))"/>
       <xsl:attribute name="start" select="$up-to-here"/>
       <xsl:attribute name="end" select="$up-to-here + string-length(.)"/>
-      <xsl:copy-of select="@p | @n | @skip | @hyphenated | @xml:id"/>
+      <xsl:copy-of select="@p | @n | @skip | @hyphenated | @xml:id | @gridlinenumber | @skip_new"/>
       <xsl:value-of select="."/>
     </xsl:copy>
   </xsl:template>
@@ -196,7 +196,7 @@
         </xsl:if>
         <match>
           <xsl:attribute name="xml:space" select="'preserve'"/>
-          <xsl:copy-of select="$line-candidates[1]/(@p, @n, @skip, @hyphenated, @xml:id)"/>
+          <xsl:copy-of select="$line-candidates[1]/(@p, @n, @skip, @hyphenated, @xml:id, @gridlinenumber, @skip_new)"/>
           <xsl:value-of select="replace($uncovered-string, concat('^\s*', $line-candidates[1]/@regex, '.*$'), '$1', $ttt:line-finder-regex-flags)"/>
         </match>
         <xsl:variable name="space" as="xs:string" 
@@ -224,7 +224,7 @@
         <xsl:analyze-string select="$uncovered-string" regex="{$line-candidates[1]/@regex}" flags="{$ttt:line-finder-regex-flags}">
           <xsl:matching-substring>
             <match>
-              <xsl:copy-of select="$line-candidates[1]/(@p, @n, @skip, @hyphenated, @xml:id)"/>
+              <xsl:copy-of select="$line-candidates[1]/(@p, @n, @skip, @hyphenated, @xml:id, @gridlinenumber, @skip_new)"/>
               <xsl:attribute name="xml:space" select="'preserve'"/>
               <xsl:value-of select="."/>
             </match>
