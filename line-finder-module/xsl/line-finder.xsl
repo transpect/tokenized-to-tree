@@ -27,6 +27,7 @@
 
   <xsl:template match="ttt:para" mode="find-matching-lines">
     <xsl:param name="lines" as="element(line)*" tunnel="yes"/>
+    <xsl:message select="'.'"/>
     <xsl:variable name="matching-lines" as="document-node()">
       <xsl:document>
         <xsl:sequence select="$lines[matches(current()/*/@ttt:text, @regex, $ttt:line-finder-regex-flags)]"/>
@@ -90,12 +91,16 @@
                             (number($ps/@p) = number($_line/@p) - 1)
                             and
                             (number($_line/@n) = 1)
+                            and
+                            ($ps/@lastline)
                           )
                           or
                           (
                             (number($fs/@p) = number($_line/@p) + 1)
                             and
                             (number($fs/@n) = 1)
+                            and
+                            ($_line/@lastline)
                           )"/>
   </xsl:function>
 
@@ -108,6 +113,9 @@
                          return generate-id($l), 
                          generate-id())"/>
       <xsl:copy-of select="@*"/>
+      <xsl:if test="not(following-sibling::line)">
+        <xsl:attribute name="lastline" select="'true'"/>
+      </xsl:if>
       <xsl:if test="*[last()]/self::hyphen">
         <xsl:attribute name="hyphenated" select="'true'"/>
       </xsl:if>
